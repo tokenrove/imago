@@ -44,6 +44,7 @@
            #:draw-pixel #:draw-line
            #:draw-rectangle #:draw-polygon
            #:draw-circle
+           #:draw-bezier-curve
 
            #:convolve
            #:blur #:sharpen #:edge-detect #:emboss

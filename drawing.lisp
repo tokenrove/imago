@@ -90,3 +90,23 @@
                       (decf y)))
                (incf x)
                (circle-points x y color)))))
+
+(defun draw-bezier-curve (image x1 y1 x2 y2 x3 y3 x4 y4 color)
+  "Draws a cublic Bezier curve defined by a starting point, two control
+points, and an end point, in an image."
+  (flet ((point-on-bezier-curve (mu)
+           (let* ((mum1 (- 1 mu))
+                  (c1 (* mum1 mum1 mum1))
+                  (c2 (* 3.0 mu mum1 mum1))
+                  (c3 (* 3.0 mu mu mum1))
+                  (c4 (* mu mu mu)))
+             (values (round (+ (* c1 x1) (* c2 x2) (* c3 x3) (* c4 x4)))
+                     (round (+ (* c1 y1) (* c2 y2) (* c3 y3) (* c4 y4)))))))
+    (multiple-value-bind (x0 y0)
+        (point-on-bezier-curve 0.0)
+      (loop for tt in '(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)
+            do (multiple-value-bind (x y)
+                   (point-on-bezier-curve tt)
+                 (draw-line image x0 y0 x y color)
+                 (setf x0 x)
+                 (setf y0 y))))))
