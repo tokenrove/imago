@@ -89,6 +89,9 @@
                  do (setf (image-pixel image x y)
                           (funcall reader stream bpp)))))
 
+(register-image-reader '("tga" "TGA") #'read-tga)
+
+
 (defun write-tga (image filespec &key (top-down-p nil))
   (with-open-file (stream filespec :direction :output :if-exists :supersede
                    :element-type '(unsigned-byte 8))

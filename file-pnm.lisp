@@ -79,6 +79,9 @@ a newly created image correponding to those data."
     (skip-line stream)
     (values width height max-value)))
 
+(register-image-reader '("pnm" "PNM" "ppm" "PPM" "pgm" "PGM") #'read-pnm)
+
+
 (defun write-pnm (image filespec output-format)
   "Writes the image data to a file in PNM format.
 OUTPUT-FORMAT can be either :ASCII or :BINARY."

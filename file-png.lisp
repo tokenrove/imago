@@ -194,6 +194,9 @@
           ((<= pb pc) b)
           (t c))))
 
+(register-image-reader '("png" "PNG") #'read-png)
+
+
 (defun write-png (image filespec)
   (with-open-file (stream filespec :direction :output :if-exists :supersede
                    :element-type '(unsigned-byte 8))

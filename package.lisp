@@ -32,6 +32,7 @@
            #:make-gray
            #:gray-intensity #:gray-alpha
            #:invert-gray
+
            #:+white+ #:+black+
            #:+red+ #:+green+ #:+blue+
            #:+cyan+ #:+magenta+ #:+yellow+
@@ -50,6 +51,9 @@
            #:blur #:sharpen #:edge-detect #:emboss
 
            #:compose
+
+           #:read-image
+           #:register-image-reader
 
            #:read-png #:write-png
            #:read-pnm #:write-pnm
