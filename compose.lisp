@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; Image composition
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -12,10 +12,17 @@
 
 (in-package :imago)
 
+
 (defgeneric compose (dest image1 image2 x y operator)
   (:documentation "Composes IMAGE1 and IMAGE2 at offset (X, Y), using
 OPERATOR to compose each pixel. OPERATOR must be a function of two colors,
 returning a color."))
+
+(defgeneric default-compose-operator (image)
+  (:documentation "Returns a compose operator that can be applied to
+images of the same type as IMAGE. The default operator mixes colors
+according to their respective alpha component."))
+
 
 (defmethod compose ((dest (eql nil)) (image1 image) (image2 image)
                     x y operator)
@@ -45,8 +52,6 @@ returning a color."))
                                        (image-pixel image2 x2 y2)))))))
   dest)
 
-
-(defgeneric default-compose-operator (image))
 
 (defmethod default-compose-operator ((image rgb-image))
   (lambda (color1 color2)

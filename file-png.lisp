@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; PNG file handling
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -11,6 +11,7 @@
 
 
 (in-package :imago)
+
 
 (defparameter +png-signature+ '#(137 80 78 71 13 10 26 10))
 
@@ -144,7 +145,11 @@
              (unless (zerop (mod data-bit-index 8))
                (incf data-bit-index (- 8 (mod data-bit-index 8)))))
     (loop with samples-index = 0
-          with pixels = (make-array (list height width) :initial-element 0)
+          with pixels = (make-array (list height width)
+                                    :element-type (ecase color-type
+                                                    ((2 6) 'rgb-pixel)
+                                                    ((0 4) 'grayscale-pixel)
+                                                    ((3) 'indexed-pixel)))
           for y below height
           do (loop for x below width
                    do (macrolet ((next-byte ()

@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; Drawing simple shapes
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -11,6 +11,7 @@
 
 
 (in-package :imago)
+
 
 (defun draw-point (image x y color)
   "Draws a point in an image."

@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; Image format conversions
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -12,7 +12,13 @@
 
 (in-package :imago)
 
+
 (defgeneric convert-to-rgb (image))
+
+(defgeneric convert-to-grayscale (image))
+
+(defgeneric convert-to-indexed (image))
+
 
 (defmethod convert-to-rgb ((image indexed-image))
   (let* ((width (image-width image))
@@ -41,8 +47,6 @@
               (make-color gray gray gray))))
     result))
 
-(defgeneric convert-to-grayscale (image))
-
 (defmethod convert-to-grayscale ((image rgb-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -68,8 +72,6 @@
         (setf (row-major-aref result-pixels i)
               (color-intensity (aref colormap color-index)))))
     result))
-
-(defgeneric convert-to-indexed (image))
 
 (defmethod convert-to-indexed ((image rgb-image))
   (error "Not implemented"))

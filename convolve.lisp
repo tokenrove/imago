@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; Image filters (based on 5x5 convolution matrices)
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -12,7 +12,10 @@
 
 (in-package :imago)
 
-(defgeneric convolve (image matrix divisor offset))
+
+(defgeneric convolve (image matrix divisor offset)
+  (:documentation "Applies a 5x5 convolution kernel (a 5x5 real number
+matrix) to an image. Returns the resulting image."))
 
 (defmethod convolve ((image rgb-image) matrix divisor offset)
   (with-image-definition (image width height pixels)

@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; ASDF system definition
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The author grants you the rights to distribute
 ;;; and use this software as governed by the terms

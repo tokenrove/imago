@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;; Image operations
 ;;;
-;;; Copyright (C) 2004  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
+;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -12,10 +12,25 @@
 
 (in-package :imago)
 
+
 (defgeneric copy (dest src &key dest-x dest-y src-x src-y width height)
   (:documentation "Copies a rectangular region from image SRC to image DEST.
 Both images must be large enough to contain the specified region at
 the given positions. Both images must be of same type."))
+
+(defgeneric scale (image width-factor height-factor)
+  (:documentation "Returns an newly created image corresponding to the
+IMAGE image, with its dimensions multiplied by the given factors."))
+
+(defgeneric resize (image new-width new-height)
+  (:documentation "Returns an newly created image corresponding to the
+IMAGE image, with given dimensions."))
+
+(defgeneric flip (dest image axis)
+  (:documentation "Flips an image. AXIS may be either :HORIZONTAL or
+:VERTICAL. DEST must be either an image of same type and dimensions as
+IMAGE, or NIL. Returns the resulting image."))
+
 
 (defmethod copy ((dest (eql nil)) (src image)
                  &key (dest-x 0) (dest-y 0) (src-x 0) (src-y 0) width height)
@@ -76,20 +91,12 @@ the given positions. Both images must be of same type."))
              (incf src-y)))
   dest)
 
-(defgeneric scale (image width-factor height-factor)
-  (:documentation "Returns an newly created image corresponding to the
-IMAGE image, with its dimensions multiplied by the given factors."))
-
 (defmethod scale ((image image) width-factor height-factor)
   (let ((width (image-width image))
         (height (image-height image)))
     (resize image
             (floor (* width width-factor))
             (floor (* height height-factor)))))
-
-(defgeneric resize (image new-width new-height)
-  (:documentation "Returns an newly created image corresponding to the
-IMAGE image, with given dimensions."))
 
 (defmethod resize ((image image) new-width new-height)
   (let* ((dest (make-instance (class-of image)
@@ -121,11 +128,6 @@ IMAGE image, with given dimensions."))
                 (incf image-line-index image-width)
                 (decf y-err new-height)))))))
     dest))
-
-(defgeneric flip (dest image axis)
-  (:documentation "Flips an image. AXIS may be either :HORIZONTAL or
-:VERTICAL. DEST must be either an image of same type and dimensions as
-IMAGE, or NIL. Returns the resulting image."))
 
 (defmethod flip ((dest (eql nil)) (image image) axis)
   (let ((dest (make-similar-image image)))
