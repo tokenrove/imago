@@ -18,6 +18,7 @@
            #:image-width #:image-height
            #:image-pixels #:image-pixel
            #:rgb-image #:indexed-image #:grayscale-image
+           #:rgb-pixel #:indexed-pixel #:grayscale-pixel
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
