@@ -30,7 +30,7 @@
     (read-png-signature stream)
     (let ((descriptor nil)
           (data (make-array (file-length stream)
-                            :element-type '(unsigned-byte 8) :adjustable t
+                            :element-type '(unsigned-byte 8)
                             :fill-pointer 0))
           (data-index 0)
           (colormap nil))
@@ -103,7 +103,8 @@
          (color-type (png-descriptor-color-type descriptor))
          (depth (png-descriptor-depth descriptor))
          (samples-per-pixel (png-samples-per-pixel color-type))
-         (samples (make-array (* width height samples-per-pixel)))
+         (samples (make-array (* width height samples-per-pixel)
+                              :element-type '(unsigned-byte 16)))
          (data-bit-index 0))
     (loop with samples-index = 0
           for y below height
@@ -146,26 +147,23 @@
           with pixels = (make-array (list height width) :initial-element 0)
           for y below height
           do (loop for x below width
-                   for pixel-samples = (loop repeat samples-per-pixel
-                                             collect (read-array-element
-                                                      samples samples-index))
-                   do (unless (= color-type 3)
-                        (map-into pixel-samples
-                                  (lambda (x) (ash x (- 8 depth)))
-                                  pixel-samples))
-                      (setf (aref pixels y x)
-                            (case color-type
-                              (0 (make-gray (first pixel-samples)))
-                              (2 (make-color (first pixel-samples)
-                                             (second pixel-samples)
-                                             (third pixel-samples)))
-                              (3 (first pixel-samples))
-                              (4 (make-gray (first pixel-samples)
-                                            (second pixel-samples)))
-                              (6 (make-color (first pixel-samples)
-                                             (second pixel-samples)
-                                             (third pixel-samples)
-                                             (fourth pixel-samples))))))
+                   do (macrolet ((next-byte ()
+                                 `(ash (read-array-element
+                                        samples samples-index)
+                                   (- 8 depth))))
+                        (setf (aref pixels y x)
+                              (case color-type
+                                (0 (make-gray (next-byte)))
+                                (2 (make-color (next-byte)
+                                               (next-byte)
+                                               (next-byte)))
+                                (3 (read-array-element samples samples-index))
+                                (4 (make-gray (next-byte)
+                                              (next-byte)))
+                                (6 (make-color (next-byte)
+                                               (next-byte)
+                                               (next-byte)
+                                               (next-byte)))))))
           finally (return pixels))))
 
 (defun png-samples-per-pixel (color-type)
