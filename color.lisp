@@ -12,9 +12,17 @@
 
 (in-package :imago)
 
-(declaim (inline make-gray))
+
+(deftype rgb-pixel () '(unsigned-byte 32))
+
+(deftype grayscale-pixel () '(unsigned-byte 16))
+
+(deftype indexed-pixel () '(unsigned-byte 1))
+
+(declaim (inline make-gray gray-intensity gray-alpha invert-gray))
+
 (defun make-gray (intensity &optional (alpha #xff))
-  (logior (ash alpha 8) intensity))
+  (the grayscale-pixel (logior (ash alpha 8) intensity)))
 
 (defun gray-intensity (gray)
   (the (unsigned-byte 8) (ldb (byte 8 0) gray)))
@@ -26,9 +34,11 @@
   (logior (lognot (logand gray #x00ff))
           (logand gray #xff00)))
 
-(declaim (inline make-color))
+(declaim (inline make-color color-red color-green color-blue color-alpha
+                 color-rgb color-argb color-intensity invert-color))
+
 (defun make-color (r g b &optional (alpha #xff))
-  (logior (ash alpha 24) (ash r 16) (ash g 8) b))
+  (the rgb-pixel (logior (ash alpha 24) (ash r 16) (ash g 8) b)))
 
 (defun color-red (color)
   (the (unsigned-byte 8) (ldb (byte 8 16) color)))
