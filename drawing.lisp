@@ -20,6 +20,7 @@
 
 (defun draw-line (image x1 y1 x2 y2 color
                   &key (dash-length 1) (dash-interval 0))
+  "Draws a line between two points in an image."
   (let ((drawing t)
         (counter 0))
     (do-line-pixels (image pixel x y x1 y1 x2 y2)
@@ -34,24 +35,31 @@
             (setf drawing t
                   counter 0))))))
 
-(defun draw-rectangle (image x1 y1 width height color)
+(defun draw-rectangle (image x1 y1 width height color
+                       &key (dash-length 1) (dash-interval 0))
   "Draws a rectangle in an image."
-  (let* ((image-width (image-width image))
-         (pixels (image-pixels image))
-         (index (+ (* y1 image-width) x1)))
-    (loop for index2 = index then (1+ index2)
-          repeat width
-          do (setf (row-major-aref pixels index2) color))
-    (loop for index2 = (+ index (* (1- height) image-width)) then (1+ index2)
-          repeat width
-          do (setf (row-major-aref pixels index2) color))
-    (loop for index2 = (+ index image-width) then (+ index2 image-width)
-          repeat (- height 2)
-          do (setf (row-major-aref pixels index2) color))
-    (loop for index2 = (+ index image-width width -1)
-          then (+ index2 image-width)
-          repeat (- height 2)
-          do (setf (row-major-aref pixels index2) color))))
+  (let ((x2 (+ x1 width -1))
+        (y2 (+ y1 height -1)))
+    (draw-line image x1 y1 x2 y1 color
+               :dash-length dash-length :dash-interval dash-interval)
+    (draw-line image x1 y2 x2 y2 color
+               :dash-length dash-length :dash-interval dash-interval)
+    (draw-line image x1 y1 x1 y2 color
+               :dash-length dash-length :dash-interval dash-interval)
+    (draw-line image x2 y1 x2 y2 color
+               :dash-length dash-length :dash-interval dash-interval)))
+
+(defun draw-polygon (image coord-list color
+                     &key (closed t) (dash-length 1) (dash-interval 0))
+  "Draws a polygon in an image."
+  (loop for (x1 y1 x2 y2) on coord-list by #'cddr
+        do (when (and closed (null x2) (null y2))
+             (setf x2 (first coord-list)
+                   y2 (second coord-list)))
+           (unless (or (null x2) (null y2))
+             (draw-line image x1 y1 x2 y2 color
+                        :dash-length dash-length
+                        :dash-interval dash-interval))))
 
 (defun draw-circle (image center-x center-y radius color)
   "Draws a circle in an image."

@@ -41,7 +41,9 @@
            #:copy
            #:flip #:scale #:resize
 
-           #:draw-pixel #:draw-line #:draw-rectangle #:draw-circle
+           #:draw-pixel #:draw-line
+           #:draw-rectangle #:draw-polygon
+           #:draw-circle
 
            #:convolve
            #:blur #:sharpen #:edge-detect #:emboss
