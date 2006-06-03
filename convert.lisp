@@ -19,6 +19,8 @@
 
 (defgeneric convert-to-indexed (image))
 
+(defgeneric convert-to-planar (image))
+
 
 (defmethod convert-to-rgb ((image indexed-image))
   (let* ((width (image-width image))
@@ -76,6 +78,7 @@
 (defmethod convert-to-indexed ((image rgb-image))
   (error "Not implemented"))
 
+
 (defmethod convert-to-indexed ((image grayscale-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -89,3 +92,7 @@
             (row-major-aref pixels i)))
     (setf (slot-value result 'colormap) colormap)
     result))
+
+
+(defmethod convert-to-planar ((image image))
+  (error "Not implemented"))

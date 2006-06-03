@@ -16,9 +16,10 @@
   (:use :common-lisp)
   (:export #:image
            #:image-width #:image-height
+           #:image-plane-count #:image-colormap
            #:image-pixels #:image-pixel
-           #:rgb-image #:indexed-image #:grayscale-image
-           #:rgb-pixel #:indexed-pixel #:grayscale-pixel
+           #:rgb-image #:indexed-image #:grayscale-image #:planar-image
+           #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
@@ -38,6 +39,7 @@
            #:+cyan+ #:+magenta+ #:+yellow+
 
            #:convert-to-rgb #:convert-to-indexed #:convert-to-grayscale
+           #:convert-to-planar
 
            #:copy
            #:flip #:scale #:resize
@@ -57,6 +59,7 @@
 
            #:read-png #:write-png
            #:read-pnm #:write-pnm
-           #:read-tga #:write-tga))
+           #:read-tga #:write-tga
+           #:read-pcx #:write-pcx))
 
 

@@ -17,7 +17,10 @@
 
 (deftype grayscale-pixel () '(unsigned-byte 16))
 
-(deftype indexed-pixel () '(unsigned-byte 1))
+(deftype indexed-pixel () '(unsigned-byte 8))
+
+(deftype planar-pixel (&optional (plane-count '*))
+  `(unsigned-byte ,plane-count))
 
 (declaim (inline make-gray gray-intensity gray-alpha invert-gray))
 
@@ -88,7 +91,7 @@
       index)))
 
 (defun make-simple-gray-colormap ()
-  (let ((colormap (make-array 256 :element-type '(unsigned-byte 8))))
+  (let ((colormap (make-array 256 :element-type 'rgb-pixel)))
     (dotimes (i 256)
       (setf (aref colormap i) (make-color i i i)))
     colormap))

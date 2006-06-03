@@ -30,11 +30,15 @@
         finally (return number)))
 
 (defun write-msb-integer (number stream size)
+  "Writes SIZE bytes of the integer NUMBER to STREAM, in
+most-significant bit order."
   (loop for i below size
         for pos = (* (1- size) 8) then (- pos 8)
         do (write-byte (ldb (byte 8 pos) number) stream)))
 
 (defun write-lsb-integer (number stream size)
+  "Writes SIZE bytes of the integer NUMBER to STREAM, in
+least-significant bit order."
   (loop for i below size
         for pos = 0 then (+ pos 8)
         do (write-byte (ldb (byte 8 pos) number) stream)))

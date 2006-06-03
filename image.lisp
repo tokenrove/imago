@@ -125,3 +125,44 @@ the image color count (256 by default)."))
         (t (error "Invalid initialization arguments"))))
 
 (defmethod pixel-size ((image indexed-image)) 1)
+
+
+(defclass planar-image (image)
+  ;; XXX: I couldn't get a tighter type specifier to match this,
+  ;; because of the parameter to planar-pixel.
+  ((pixels :type simple-array
+           :reader image-pixels)
+   (plane-count :type integer :reader image-plane-count)
+   (colormap :initarg :colormap :reader image-colormap))
+  (:documentation "The class for planar images.  Image dimensions and
+plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
+:HEIGHT, and :PLANE-COUNT keyword parameters, respectively."))
+
+(defmethod initialize-instance :after ((image planar-image) &rest initargs
+                                       &key width height plane-count pixels
+                                       colormap)
+  (declare (ignore initargs))
+  (unless (numberp plane-count)
+    (error "Invalid initialization arguments (you must specify a plane count for this type of image)"))
+  (setf (slot-value image 'plane-count) plane-count)
+
+  (cond ((not (null colormap))
+         (assert (= (length colormap) (ash 1 plane-count)))
+         (setf (slot-value image 'colormap) colormap))
+        (t
+         ;; XXX shouldn't the initial element of the colormap be a
+         ;; color (like +black+, not 0)?
+         (setf (slot-value image 'colormap)
+               (make-array (ash 1 plane-count) :initial-element 0))))
+  (cond ((not (null pixels))
+         (setf (slot-value image 'pixels) pixels))
+        ((and (numberp width) (numberp height))
+         (setf (slot-value image 'pixels)
+               (make-array (list height width)
+                           :element-type `(planar-pixel ,plane-count)
+                           :initial-element 0)))
+        (t (error "Invalid initialization arguments"))))
+
+(defmethod pixel-size ((image planar-image))
+  (/ (image-plane-count image) 8))
+

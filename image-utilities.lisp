@@ -169,4 +169,3 @@ in an image."))
           do (multiple-value-bind (r g b)
                  (color-rgb (aref colormap i))
                (setf (aref colormap i) (make-color r g b alpha))))))
-
