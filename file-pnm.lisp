@@ -136,7 +136,25 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
     (with-write-pnm-loop (stream x y pixels 5 255)
       (write-char (code-char (image-pixel image x y)) stream))))
 
-(defmethod write-pnm-to-stream ((image indexed-image) filespec
-                                output-format)
-  (error "PNM format not supported for indexed images."))
+(defmethod write-pnm-to-stream ((image indexed-image) stream
+                                (output-format (eql :ascii)))
+  (let ((pixels (image-pixels image))
+	(color-map (image-colormap image)))
+    (with-write-pnm-loop (stream x y pixels 3 255)
+      (let ((pixel-rgb (aref color-map (image-pixel image x y))))
+        (format stream "~A ~A ~A~%"
+                (color-red pixel-rgb)
+                (color-green pixel-rgb)
+                (color-blue pixel-rgb))))))
+
+(defmethod write-pnm-to-stream ((image indexed-image) stream
+                                (output-format (eql :binary)))
+  (let ((pixels (image-pixels image))
+	(color-map (image-colormap image)))
+    (with-write-pnm-loop (stream x y pixels 6 255)
+      (let ((pixel-rgb (aref color-map (image-pixel image x y))))
+        (write-char (code-char (color-red pixel-rgb)) stream)
+        (write-char (code-char (color-green pixel-rgb)) stream)
+        (write-char (code-char (color-blue pixel-rgb)) stream)))))
+
 
