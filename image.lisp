@@ -109,7 +109,8 @@ the image color count (256 by default)."))
 (defmethod initialize-instance :after ((image indexed-image) &rest initargs
                                        &key width height pixels
                                             colormap (color-count 256))
-  (declare (ignore initargs))
+  (declare (ignore initargs)
+	   (type fixnum color-count))
   (cond ((not (null colormap))
          (setf (slot-value image 'colormap) colormap))
         ((and (numberp color-count) (<= color-count 256))
