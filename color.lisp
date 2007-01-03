@@ -41,41 +41,54 @@
                  color-rgb color-argb color-intensity invert-color))
 
 (defun make-color (r g b &optional (alpha #xff))
+  (declare (type (unsigned-byte 8) r)
+           (type (unsigned-byte 8) g)
+           (type (unsigned-byte 8) b)
+           (type (unsigned-byte 8) alpha))
   (the rgb-pixel (logior (ash alpha 24) (ash r 16) (ash g 8) b)))
 
 (defun color-red (color)
+  (declare (type rgb-pixel color))
   (the (unsigned-byte 8) (ldb (byte 8 16) color)))
 
 (defun color-green (color)
+  (declare (type rgb-pixel color))
   (the (unsigned-byte 8) (ldb (byte 8 8) color)))
 
 (defun color-blue (color)
+  (declare (type rgb-pixel color))
   (the (unsigned-byte 8) (ldb (byte 8 0) color)))
 
 (defun color-alpha (color)
+  (declare (type rgb-pixel color))
   (the (unsigned-byte 8) (ldb (byte 8 24) color)))
 
 (defun color-rgb (color)
+  (declare (type rgb-pixel color))
   (values (color-red color)
           (color-green color)
           (color-blue color)))
 
 (defun color-argb (color)
+  (declare (type rgb-pixel color))
   (values (color-alpha color)
           (color-red color)
           (color-green color)
           (color-blue color)))
 
 (defun color-intensity (color)
+  (declare (type rgb-pixel color))
   (multiple-value-bind (r g b)
       (color-rgb color)
     (floor (+ r g b) 3)))
 
 (defun invert-color (color)
+  (declare (type rgb-pixel color))
   (logior (lognot (logand color #x00ffffff))
           (logand color #xff000000)))
 
 (defun closest-colortable-entry (color table)
+  (declare (type rgb-pixel color))
   (multiple-value-bind (color-r color-g color-b)
       (color-rgb color)
     (multiple-value-bind (element index score)
