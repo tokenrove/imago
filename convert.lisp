@@ -1,4 +1,4 @@
-;;; IMAGO library
+g;;; IMAGO library
 ;;; Image format conversions
 ;;;
 ;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
@@ -44,7 +44,7 @@
                                 :width width :height height))
          (result-pixels (image-pixels result)))
     (dotimes (i (* width height))
-      (let ((gray (row-major-aref pixels i)))
+      (let ((gray (gray-intensity (row-major-aref pixels i))))
         (setf (row-major-aref result-pixels i)
               (make-color gray gray gray))))
     result))
@@ -57,8 +57,8 @@
                                 :width width :height height))
          (result-pixels (image-pixels result)))
     (dotimes (i (* width height))
-      (let ((gray (color-intensity (row-major-aref pixels i))))
-        (setf (row-major-aref result-pixels i) gray)))
+      (let ((intensity (color-intensity (row-major-aref pixels i))))
+        (setf (row-major-aref result-pixels i) (make-gray intensity))))
     result))
 
 (defmethod convert-to-grayscale ((image indexed-image))
@@ -72,7 +72,7 @@
     (dotimes (i (* width height))
       (let ((color-index (row-major-aref pixels i)))
         (setf (row-major-aref result-pixels i)
-              (color-intensity (aref colormap color-index)))))
+              (make-gray (color-intensity (aref colormap color-index))))))
     result))
 
 (defmethod convert-to-indexed ((image rgb-image))
@@ -83,14 +83,14 @@
   (let* ((width (image-width image))
          (height (image-height image))
          (pixels (image-pixels image))
-         (result (make-instance 'grayscale-image
-                                :width width :height height))
-         (result-pixels (image-pixels result))
-         (colormap (make-simple-gray-colormap)))
+         (colormap (make-simple-gray-colormap))
+         (result (make-instance 'indexed-image
+                                :width width :height height
+                                :colormap colormap))
+         (result-pixels (image-pixels result)))
     (dotimes (i (* width height))
       (setf (row-major-aref result-pixels i)
-            (row-major-aref pixels i)))
-    (setf (slot-value result 'colormap) colormap)
+            (gray-intensity (row-major-aref pixels i))))
     result))
 
 
