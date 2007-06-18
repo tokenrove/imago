@@ -1,4 +1,4 @@
-g;;; IMAGO library
+;;; IMAGO library
 ;;; Image format conversions
 ;;;
 ;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
