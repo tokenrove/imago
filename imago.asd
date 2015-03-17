@@ -9,14 +9,14 @@
 ;;; (http://opensource.franz.com/preamble.html),
 ;;; known as the LLGPL.
 
-
-(defpackage #:imago-system
-  (:use #:asdf #:common-lisp))
-
-(in-package #:imago-system)
+(in-package :asdf-user)
 
 (defsystem imago
   :name "imago"
+  :description "Image manipulation library"
+  :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
+  :license "LLGPL"
+  :version "0.9.0"
   :depends-on (:zlib)
   :components ((:file "package")
                (:file "utilities" :depends-on ("package"))
