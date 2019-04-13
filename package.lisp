@@ -44,7 +44,7 @@
            #:copy
            #:flip #:scale #:resize
 
-           #:draw-pixel #:draw-line
+           #:draw-point #:draw-line
            #:draw-rectangle #:draw-polygon
            #:draw-circle
            #:draw-bezier-curve
