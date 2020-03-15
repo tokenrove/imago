@@ -18,10 +18,10 @@
 (defun read-image (filename &key (errorp t))
   "Reads an image from a file. If the file format is not recognized,
 depending on the value of :ERRORP, either throws an error or returns NIL."
-  (let* ((last-dot-position (position #\. filename :from-end t))
-         (extension (and (numberp last-dot-position)
-                         (subseq filename (1+ last-dot-position))))
-         (reader (gethash extension *image-file-readers*)))
+  (declare (type (or pathname string) filename))
+  (let ((reader (gethash
+                 (pathname-type (pathname filename))
+                 *image-file-readers*)))
     (if (null reader)
         (and errorp (error "Unknown file format."))
         (funcall reader filename))))
