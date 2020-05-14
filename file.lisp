@@ -12,8 +12,10 @@
 
 (in-package :imago)
 
-
 (defparameter *image-file-readers* (make-hash-table :test #'equal))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (pushnew :imago-fixed-reader *features*))
 
 (defun read-image (filename &key (errorp t))
   "Reads an image from a file. If the file format is not recognized,
