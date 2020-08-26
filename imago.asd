@@ -19,6 +19,7 @@
   :version "0.9.0"
   :depends-on (:zlib)
   :components ((:file "package")
+               (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))
                (:file "color" :depends-on ("package"))
                (:file "image" :depends-on ("package"))
@@ -29,7 +30,7 @@
                (:file "convolve" :depends-on ("image" "color"))
                (:file "compose" :depends-on ("image" "color"))
                (:file "operations" :depends-on ("image" "color"))
-               (:file "file" :depends-on ("package"))
+               (:file "file" :depends-on ("conditions"))
                (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
                (:file "file-pnm" :depends-on ("image" "color" "file"))
                (:file "file-tga" :depends-on ("image" "color" "file"))

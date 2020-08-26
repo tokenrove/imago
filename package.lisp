@@ -21,6 +21,10 @@
            #:rgb-image #:indexed-image #:grayscale-image #:planar-image
            #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
 
+           #:imago-condition
+           #:imago-error
+           #:unknown-format
+
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
            #:set-alpha

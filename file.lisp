@@ -23,7 +23,7 @@ depending on the value of :ERRORP, either throws an error or returns NIL."
                  (pathname-type (pathname filename))
                  *image-file-readers*)))
     (if (null reader)
-        (and errorp (error "Unknown file format."))
+        (and errorp (error 'unknown-format :pathname filename))
         (funcall reader filename))))
 
 (defun register-image-reader (extensions function)
