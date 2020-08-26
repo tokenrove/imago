@@ -38,6 +38,7 @@ according to their respective alpha component."))
   (unless (in-image-p x y image1)
     (return-from compose dest))
   (with-image-definition (image1 width1 height1 pixels1)
+    (declare (ignore pixels1))
     (let ((width (min (image-width image2) (- width1 x)))
           (height (min (image-height image2) (- height1 y))))
       (loop for y1 from y
