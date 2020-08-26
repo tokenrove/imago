@@ -24,6 +24,7 @@
            #:imago-condition
            #:imago-error
            #:unknown-format
+           #:decode-error
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
@@ -62,6 +63,7 @@
            #:register-image-reader #:register-image-writer
            #:register-image-reader-writer
 
+           #:read-jpg #:write-jpg
            #:read-png #:write-png
            #:read-pnm #:write-pnm
            #:read-tga #:write-tga

@@ -17,7 +17,7 @@
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
   :license "LLGPL"
   :version "0.9.0"
-  :depends-on (:zlib)
+  :depends-on (:zlib :cl-jpeg)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))
@@ -34,4 +34,5 @@
                (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
                (:file "file-pnm" :depends-on ("image" "color" "file"))
                (:file "file-tga" :depends-on ("image" "color" "file"))
-               (:file "file-pcx" :depends-on ("image" "color" "file"))))
+               (:file "file-pcx" :depends-on ("image" "color" "file"))
+               (:file "file-jpg" :depends-on ("image" "color" "file"))))

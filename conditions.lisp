@@ -27,3 +27,12 @@ with unknown format")
   (:report (lambda (c s)
              (format s "Unknown file format: ~a"
                      (unknown-format-pathname c)))))
+
+(define-condition decode-error (imago-error simple-condition)
+  ()
+  (:documentation "Signaled when decoding process has errored"))
+
+#+nil
+(define-condition encode-error (imago-error simple-condition)
+  ()
+  (:documentation "Signaled when encoding process has errored"))
