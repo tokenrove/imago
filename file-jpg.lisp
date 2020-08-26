@@ -88,7 +88,13 @@ where 64 is default and the best quality."
       (dotimes (x width)
         (write-jpg-pixel image data x y)))
     (cl-jpeg:encode-image filespec data ncomp height width
-                          :q-factor quality))
+                          :q-factor quality
+                          ;; Seems like a bug in cl-jpeg that I need to specify this
+                          ;; manually.
+                          :q-tabs (if (= ncomp 1)
+                                      (vector cl-jpeg::+q-luminance-hi+)
+                                      (vector cl-jpeg::+q-luminance-hi+
+                                              cl-jpeg::+q-chrominance-hi+))))
   nil)
 
 (register-image-io-functions '("jpg" "jpeg")
