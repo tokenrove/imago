@@ -147,8 +147,6 @@
             (aref ega-palette (+ 1 (* i 3))) (color-green color)
             (aref ega-palette (+ 2 (* i 3))) (color-blue color)))))
 
-(register-image-reader '("pcx" "PCX") #'read-pcx)
-
 
 (defun write-pcx (image filespec
                   &key (max-run-length 63)
@@ -291,3 +289,6 @@ behavior, but it's not necessary for most decoders."
         ((>= j (length buffer)))
       (setf (aref buffer j) v))))
 
+(register-image-io-functions '("pcx")
+                             :reader #'read-pcx
+                             :writer #'write-pcx)

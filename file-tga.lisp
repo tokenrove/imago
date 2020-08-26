@@ -89,8 +89,6 @@
                  do (setf (image-pixel image x y)
                           (funcall reader stream bpp)))))
 
-(register-image-reader '("tga" "TGA") #'read-tga)
-
 
 (defun write-tga (image filespec &key (top-down-p nil))
   (with-open-file (stream filespec :direction :output :if-exists :supersede
@@ -150,3 +148,7 @@
         repeat height
         do (loop for x below width
                  do (funcall pixel-writer (image-pixel image x y)))))
+
+(register-image-io-functions '("tga")
+                             :reader #'read-tga
+                             :writer #'write-tga)

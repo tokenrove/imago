@@ -58,12 +58,11 @@
 
            #:compose
 
-           #:read-image
-           #:register-image-reader
+           #:read-image #:write-image
+           #:register-image-reader #:register-image-writer
+           #:register-image-reader-writer
 
            #:read-png #:write-png
            #:read-pnm #:write-pnm
            #:read-tga #:write-tga
            #:read-pcx #:write-pcx))
-
-

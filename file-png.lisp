@@ -194,8 +194,6 @@
           ((<= pb pc) b)
           (t c))))
 
-(register-image-reader '("png" "PNG") #'read-png)
-
 
 (defun write-png (image filespec)
   (with-open-file (stream filespec :direction :output :if-exists :supersede
@@ -300,3 +298,7 @@
 (defmethod write-png-pixel-bytes (dest (image indexed-image) x y index)
   (setf (aref dest index) (image-pixel image x y))
   (1+ index))
+
+(register-image-io-functions '("png")
+                             :reader #'read-png
+                             :writer #'write-png)
