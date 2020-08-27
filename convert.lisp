@@ -22,6 +22,9 @@
 (defgeneric convert-to-planar (image))
 
 
+(defmethod convert-to-rgb ((image rgb-image))
+  image)
+
 (defmethod convert-to-rgb ((image indexed-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -61,6 +64,9 @@
         (setf (row-major-aref result-pixels i) (make-gray intensity))))
     result))
 
+(defmethod convert-to-grayscale ((image grayscale-image))
+  image)
+
 (defmethod convert-to-grayscale ((image indexed-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -76,7 +82,7 @@
     result))
 
 (defmethod convert-to-indexed ((image rgb-image))
-  (error "Not implemented"))
+  (error 'not-implemented))
 
 
 (defmethod convert-to-indexed ((image grayscale-image))
@@ -93,6 +99,8 @@
             (gray-intensity (row-major-aref pixels i))))
     result))
 
+(defmethod convert-to-indexed ((image indexed-image))
+  image)
 
 (defmethod convert-to-planar ((image image))
-  (error "Not implemented"))
+  (error 'not-implemented))

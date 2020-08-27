@@ -25,6 +25,7 @@
            #:imago-error
            #:unknown-format
            #:decode-error
+           #:not-implemented
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
