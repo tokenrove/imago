@@ -1,0 +1,16 @@
+dist: bionic
+language: common-lisp
+
+env:
+  matrix:
+    - LISP=sbcl
+    # Completes but takes too much time. Suspicious
+    #  - LISP=ccl
+
+install:
+  - sudo apt-get install info install-info
+  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | sh
+  - cl -e '(ql-util:without-prompting (ql:add-to-init-file))'
+
+script:
+  - cl -l imago -f $TRAVIS_BUILD_DIR/tests/travis.lisp
