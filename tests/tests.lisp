@@ -23,10 +23,11 @@
   (flet ((run-suite (suite)
            (explain! (run suite))))           
     (every #'run-suite
-           '(read-write conversions))))
+           '(read-write conversions processing))))
 
-(def-suite read-write :description "Image reading and writing")
+(def-suite read-write  :description "Image reading and writing")
 (def-suite conversions :description "Conversions to different color spaces")
+(def-suite processing  :description "Various image processing functions")
 
 (in-suite read-write)
 (defun test-read-write (image format)
@@ -34,9 +35,9 @@
         (width (image-width image))
         (height (image-height image)))
     (finishes (write-image image tmp-name))
-               (let ((image (read-image tmp-name)))
-                 (is (= width  (image-width image)))
-                 (is (= height (image-height image))))))
+    (let ((image (read-image tmp-name)))
+      (is (= width  (image-width image)))
+      (is (= height (image-height image))))))
 
 (test read-write-rgb
   (let ((image (read-image *rgb-image-pathname*)))
@@ -85,3 +86,26 @@
    `(#+nil (,#'convert-to-rgb       . rgb-image)       ; Broken
      #+nil (,#'convert-to-grayscale . grayscale-image) ; Broken
      (,#'convert-to-indexed   . indexed-image))))
+
+
+(in-suite processing)
+(test resize
+  (flet ((test-resize (filename)
+           (let ((image (resize (read-image filename) 2000 1000)))
+             (is (= (image-width  image) 2000))
+             (is (= (image-height image) 1000)))))
+    (mapc #'test-resize
+          (list *rgb-image-pathname*
+                *grayscale-image-pathname*
+                *indexed-image-pathname*))))
+
+(test convolution
+  (flet ((test-convolution (filename)
+           (let ((image (read-image filename)))
+             (finishes (blur image))
+             (finishes (sharpen image))
+             (finishes (edge-detect image))
+             (finishes (emboss image)))))
+    (mapc #'test-convolution
+          (list *rgb-image-pathname*
+                *grayscale-image-pathname*))))
