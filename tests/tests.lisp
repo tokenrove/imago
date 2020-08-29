@@ -37,7 +37,8 @@
     (finishes (write-image image tmp-name))
     (let ((image (read-image tmp-name)))
       (is (= width  (image-width image)))
-      (is (= height (image-height image))))))
+      (is (= height (image-height image))))
+    (delete-file tmp-name)))
 
 (test read-write-rgb
   (let ((image (read-image *rgb-image-pathname*)))

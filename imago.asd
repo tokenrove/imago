@@ -51,3 +51,13 @@
   :pathname "tests/"
   :components ((:file "package")
                (:file "tests" :depends-on ("package"))))
+
+(defsystem :imago/jpeg-turbo
+  :name :imago/jpeg-turbo
+  :version "0.1"
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago :jpeg-turbo)
+  :pathname "jpeg-turbo/"
+  :components ((:file "package")
+               (:file "file-jpg" :depends-on ("package"))))

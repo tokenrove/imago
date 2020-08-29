@@ -7,6 +7,14 @@ can read an image with `imago:read-image` and write an image with
 `imago:write-format` where `format` is one of `png`, `pcx`, `pnm`, `tga` or
 `jpg`.
 
+## Reading from and writing to jpeg files with libjpeg-turbo
+
+You can use more advanced [libjpeg-turbo](https://libjpeg-turbo.org/) library to
+deal with jpeg files by loading `imago/jpeg-turbo` system. Make sure that
+`libjpeg-turbo` is installed on your system. Use
+`imago-jpeg-turbo:read-jpg-turbo` and `imago-jpeg-turbo:write-jpg-turbo`
+functions (or just `imago:read-image` and `imago:write-image`) to use this
+functionality.
 
 ## Usage examples
 

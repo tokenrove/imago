@@ -62,7 +62,7 @@
 
            #:read-image #:write-image
            #:register-image-reader #:register-image-writer
-           #:register-image-reader-writer
+           #:register-image-io-functions
 
            #:read-jpg #:write-jpg
            #:read-png #:write-png
