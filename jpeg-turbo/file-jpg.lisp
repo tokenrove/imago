@@ -28,6 +28,7 @@ to jpeg images"))
 
 (defun read-jpg-turbo (filespec)
   "Read grayscale of RGB jpeg image from a file FILESPEC."
+  (declare (type (or string pathname) filespec))
   (with-decompressor (handle)
     (multiple-value-bind (width height subsamp colorspace)
         (decompress-header handle filespec)
@@ -38,32 +39,36 @@ to jpeg images"))
              (data (decompress handle filespec
                               :pixel-format
                               (jpg-pixel-format image))))
-        (dotimes (y height)
-          (dotimes (x width)
-            (imago::read-jpg-pixel image data x y)))
+        (dotimes (idx (* height width))
+          (imago::read-jpg-pixel image data idx))
         image))))
 
 (defun write-jpg-turbo (image filespec
                         &key (quality 100)
-                             (subsamp :s-444))
+                             (subsamp nil subsamp-p))
   "Write jpeg image IMAGE to a file FILESPEC. QUALITY is an integer in
 the range [0-100], 100 means the best quality. SUBSAMP is subsampling
 mode and defaults to :S-444 for RGB images and :S-GRAY for grayscale
 images."
+  (declare (type (or string pathname) filespec)
+           (type (or rgb-image grayscale-image) image)
+           (type (integer 1 100) quality))
   (let* ((ncomp (1- (imago::pixel-size image)))
          (width (image-width image))
          (height (image-height image))
          (length (* ncomp width height))
          (data (make-array length :element-type '(unsigned-byte 8))))
-    (dotimes (y height)
-      (dotimes (x width)
-        (imago::write-jpg-pixel image data x y)))
+    (dotimes (idx (* height width))
+      (imago::write-jpg-pixel image data idx))
     (with-compressor (handle)
       (compress handle filespec data
                 width height
                 (jpg-pixel-format image)
                 :quality quality
-                :subsamp subsamp)))
+                :subsamp (cond
+                           (subsamp-p subsamp)
+                           ((= ncomp 1) :s-gray)
+                           (t :s-444)))))
   t)
 
 (register-image-io-functions '("jpg" "jpeg")

@@ -12,25 +12,20 @@
 
 (in-package :imago)
 
-(defun one-dimensional-idx (image x y)
-  (declare (type unsigned-byte x y))
-  (+ x (* (image-width image) y)))
-
 ;; Reading
-(defgeneric read-jpg-pixel (image array x y)
+(defgeneric read-jpg-pixel (image array idx)
   (:documentation "Read a pixel from an array with jpeg data"))
 
-(defmethod read-jpg-pixel ((image grayscale-image) array x y)
-  (let ((idx (one-dimensional-idx image x y)))
-    (setf (image-pixel image x y)
-          (make-gray (aref array idx)))))
+(defmethod read-jpg-pixel ((image grayscale-image) array idx)
+  (setf (row-major-aref (image-pixels image) idx)
+        (make-gray (aref array idx))))
 
-(defmethod read-jpg-pixel ((image rgb-image) array x y)
-  (let ((idx (* 3 (one-dimensional-idx image x y))))
-    (setf (image-pixel image x y)
-          (make-color (aref array (+ idx 2))
-                      (aref array (+ idx 1))
-                      (aref array (+ idx 0))))))
+(defmethod read-jpg-pixel ((image rgb-image) array idx)
+  (let ((idx% (* 3 idx)))
+    (setf (row-major-aref (image-pixels image) idx)
+          (make-color (aref array (+ idx% 2))
+                      (aref array (+ idx% 1))
+                      (aref array (+ idx% 0))))))
 
 (defun read-jpg (filespec)
   "Read grayscale or colorful jpeg image using cl-jpeg. Colorful images are
@@ -48,29 +43,29 @@ converted to RGB colorspace."
                   :width  width
                   :height height)))
 
-      (dotimes (y height)
-        (dotimes (x width)
-          (read-jpg-pixel image data x y)))
+      (dotimes (idx (* width height))
+        (read-jpg-pixel image data idx))
       image)))
 
 ;; Writing
-(defgeneric write-jpg-pixel (image array x y)
-  (:documentation "Write a pixel at coordinates X and Y to the one
+(defgeneric write-jpg-pixel (image array idx)
+  (:documentation "Write a pixel at row-major index IDX to the one
 dimensional array"))
 
-(defmethod write-jpg-pixel ((image grayscale-image) array x y)
-  (let ((idx (one-dimensional-idx image x y)))
-    (setf (aref array idx)
-          (gray-intensity (image-pixel image x y)))))
+(defmethod write-jpg-pixel ((image grayscale-image) array idx)
+  (setf (aref array idx)
+        (gray-intensity
+         (row-major-aref
+          (image-pixels image) idx))))
 
-(defmethod write-jpg-pixel ((image rgb-image) array x y)
-  (let ((idx (* 3 (one-dimensional-idx image x y)))
-        (pixel (image-pixel image x y)))
-    (setf (aref array (+ idx 0))
+(defmethod write-jpg-pixel ((image rgb-image) array idx)
+  (let ((idx% (* 3 idx))
+        (pixel (row-major-aref (image-pixels image) idx)))
+    (setf (aref array (+ idx% 0))
           (color-blue pixel)
-          (aref array (+ idx 1))
+          (aref array (+ idx% 1))
           (color-green pixel)
-          (aref array (+ idx 2))
+          (aref array (+ idx% 2))
           (color-red pixel))))
 
 (defun write-jpg (image filespec &key (quality 64))
@@ -84,9 +79,8 @@ where 64 is default and the best quality."
          (height (image-height image))
          (data-size (* ncomp width height))
          (data (make-array data-size :element-type '(unsigned-byte 8))))
-    (dotimes (y height)
-      (dotimes (x width)
-        (write-jpg-pixel image data x y)))
+    (dotimes (idx (* width height))
+      (write-jpg-pixel image data idx))
     (cl-jpeg:encode-image filespec data ncomp height width
                           :q-factor quality
                           ;; Seems like a bug in cl-jpeg that I need to specify this
@@ -95,7 +89,7 @@ where 64 is default and the best quality."
                                       (vector cl-jpeg::+q-luminance-hi+)
                                       (vector cl-jpeg::+q-luminance-hi+
                                               cl-jpeg::+q-chrominance-hi+))))
-  nil)
+  t)
 
 (register-image-io-functions '("jpg" "jpeg")
                              :reader #'read-jpg
