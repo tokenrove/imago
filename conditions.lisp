@@ -28,6 +28,10 @@ with unknown format")
              (format s "Unknown file format: ~a"
                      (unknown-format-pathname c)))))
 
+(define-condition operation-error (imago-error simple-condition)
+  ()
+  (:documentation "Signaled when operation cannot be performed"))
+
 (define-condition decode-error (imago-error simple-condition)
   ()
   (:documentation "Signaled when decoding process has errored"))

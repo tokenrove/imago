@@ -21,11 +21,8 @@
            #:rgb-image #:indexed-image #:grayscale-image #:planar-image
            #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
 
-           #:imago-condition
-           #:imago-error
-           #:unknown-format
-           #:decode-error
-           #:not-implemented
+           #:imago-condition #:imago-error
+           #:unknown-format #:decode-error #:not-implemented #:operation-error
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
@@ -48,7 +45,7 @@
            #:convert-to-planar
 
            #:copy
-           #:flip #:scale #:resize
+           #:flip #:scale #:resize #:crop
 
            #:draw-point #:draw-line
            #:draw-rectangle #:draw-polygon

@@ -31,6 +31,12 @@ IMAGE image, with given dimensions."))
 :VERTICAL. DEST must be either an image of same type and dimensions as
 IMAGE, or NIL. Returns the resulting image."))
 
+(defgeneric crop (image x y width height)
+  (:documentation "Crops an image. The resulting image is WIDTHxHEIGHT
+and its top left corner has coordinates (X, Y) in the original image
+space. If crop rectangle is exceeding dimensions of the original image,
+OPERATION-ERROR is signalled."))
+
 
 (defmethod copy ((dest (eql nil)) (src image)
                  &key (dest-x 0) (dest-y 0) (src-x 0) (src-y 0) width height)
@@ -156,4 +162,19 @@ IMAGE, or NIL. Returns the resulting image."))
       (setf pixel (image-pixel image (- width x 1) y))))
   dest)
 
-
+(defmethod crop ((image image) x y width height)
+  (declare (type unsigned-byte x y width height))
+  (when (or
+         (> (+ x width)  (image-width  image))
+         (> (+ y height) (image-height image)))
+    (error 'operation-error
+           :format-control "Cannot crop at ~d,~d ~dx~d."
+           :format-arguments (list x y width height)))
+  (let ((dest (make-instance (class-of image)
+                             :width  width
+                             :height height)))
+    (do-image-pixels (dest pixel x% y%)
+      (setf pixel (image-pixel image
+                               (+ x x%)
+                               (+ y y%))))
+    dest))
