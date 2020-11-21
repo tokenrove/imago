@@ -1,5 +1,5 @@
 # Imago
-[![Build Status](https://travis-ci.org/tokenrove/imago.svg?branch=master)](https://travis-ci.org/tokenrove/imago)
+![CI](https://github.com/tokenrove/imago/workflows/CI/badge.svg)
 
 Imago is an image manipulation library for Common Lisp. It supports images in
 png, pcx, portable bitmap (.pnm), Truevision TGA (.tga) and jpeg formats. You

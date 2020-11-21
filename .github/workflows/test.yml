@@ -1,0 +1,27 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: lisp = ${{ matrix.lisp }}, jpeg-turbo = ${{ matrix.jpegturbo }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lisp: [sbcl]
+        jpegturbo: [YES, NO]
+    env:
+      LISP: ${{ matrix.lisp }}
+      WITH_JPEG_TURBO: ${{ matrix.jpegturbo }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get install info install-info libturbojpeg0-dev
+      - name: Install CIM
+        run: |
+          curl -L https://raw.githubusercontent.com/shamazmazum/cl-cirrus/github-actions/install-actions.sh | sh
+      - name: Run tests
+        run: |
+          cl -f $GITHUB_WORKSPACE/tests/travis.lisp
