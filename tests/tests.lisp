@@ -72,7 +72,9 @@
   (test-converters
    (read-image *rgb-image-pathname*)
    `((,#'convert-to-rgb       . rgb-image)
-     (,#'convert-to-grayscale . grayscale-image))))
+     (,#'convert-to-grayscale . grayscale-image)
+     #+nil ; Broken
+     (,#'convert-to-indexed   . indexed-image))))
 
 (test convert-from-grayscale
   (test-converters
@@ -82,11 +84,15 @@
      (,#'convert-to-indexed   . indexed-image))))
 
 (test convert-from-indexed
-  (test-converters
-   (read-image *indexed-image-pathname*)
-   `(#+nil (,#'convert-to-rgb       . rgb-image)       ; Broken
-     #+nil (,#'convert-to-grayscale . grayscale-image) ; Broken
-     (,#'convert-to-indexed   . indexed-image))))
+  ;; pngload automatically converts indexed images to RGB images
+  (when (not (find-package :imago-pngload))
+    (test-converters
+     (read-image *indexed-image-pathname*)
+     `(#+nil ; Broken
+       (,#'convert-to-rgb       . rgb-image)
+       #+nil ; Broken
+       (,#'convert-to-grayscale . grayscale-image)
+       (,#'convert-to-indexed   . indexed-image)))))
 
 
 (in-suite processing)
