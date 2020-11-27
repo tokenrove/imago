@@ -61,3 +61,13 @@
   :pathname "jpeg-turbo/"
   :components ((:file "package")
                (:file "file-jpg" :depends-on ("package"))))
+
+(defsystem :imago/pngload
+  :name :imago/pngload
+  :version "0.1"
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago :pngload)
+  :pathname "pngload/"
+  :components ((:file "package")
+               (:file "file-png" :depends-on ("package"))))
