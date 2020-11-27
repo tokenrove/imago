@@ -69,3 +69,7 @@
           (setf (aref pixels y x)
                 (get-color y x)))))
     (make-instance 'rgb-image :pixels pixels)))
+
+(register-image-io-functions
+ '("png")
+ :reader #'read-pngload)
