@@ -1,6 +1,7 @@
 (defun do-all()
-  (if (string= "YES" (uiop:getenv "WITH_JPEG_TURBO"))
-      (ql:quickload :imago/jpeg-turbo))
+  (when (string= "YES" (uiop:getenv "WITH_ALTIO"))
+    (ql:quickload :imago/jpeg-turbo)
+    (ql:quickload :imago/pngload))
   (ql:quickload :imago/tests)
   (uiop:quit
    (if (uiop:call-function "imago-tests:run-tests")
