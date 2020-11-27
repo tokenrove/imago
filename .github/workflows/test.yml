@@ -4,15 +4,15 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: lisp = ${{ matrix.lisp }}, jpeg-turbo = ${{ matrix.jpegturbo }}
+    name: lisp = ${{ matrix.lisp }}, alternative I/O = ${{ matrix.altio }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         lisp: [sbcl]
-        jpegturbo: [YES, NO]
+        altio: [YES, NO]
     env:
       LISP: ${{ matrix.lisp }}
-      WITH_JPEG_TURBO: ${{ matrix.jpegturbo }}
+      WITH_ALTIO: ${{ matrix.altio }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
