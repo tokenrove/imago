@@ -18,7 +18,7 @@
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
   :license "LLGPL"
   :version "0.9.0"
-  :depends-on (:zlib :cl-jpeg)
+  :depends-on (:zlib :cl-jpeg :alexandria)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))

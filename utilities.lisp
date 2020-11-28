@@ -12,6 +12,10 @@
 
 (in-package :imago)
 
+;; Basic types
+
+(deftype non-negative-fixnum () '(integer 0 #.most-positive-fixnum))
+(deftype positive-fixnum () '(integer 1 #.most-positive-fixnum))
 
 ;;; Binary streams
 
