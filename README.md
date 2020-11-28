@@ -73,6 +73,16 @@ All usage examples are taken from
 | -------- | --------- |
 | ![Original](docs/oranges.png) | ![Processed](docs/oranges-region-invert.png) |
 
+### Adjusting contrast of a grayscale image
+
+~~~~
+(enhance-contrast *grayscale-image*)
+~~~~
+
+| Original | Processed |
+| -------- | --------- |
+| ![Original](docs/house.jpg) | ![Processed](docs/house-enchanced-contrast.jpg) |
+
 ### Manipulating color components
 
 ~~~~{.lisp}

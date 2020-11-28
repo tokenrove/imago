@@ -65,4 +65,6 @@
            #:read-png #:write-png
            #:read-pnm #:write-pnm
            #:read-tga #:write-tga
-           #:read-pcx #:write-pcx))
+           #:read-pcx #:write-pcx
+
+           #:enhance-contrast))

@@ -30,6 +30,7 @@
                (:file "convert" :depends-on ("image" "color"))
                (:file "convolve" :depends-on ("image" "color"))
                (:file "compose" :depends-on ("image" "color"))
+               (:file "contrast" :depends-on ("image" "color"))
                (:file "operations" :depends-on ("image" "color"))
                (:file "file" :depends-on ("conditions"))
                (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
