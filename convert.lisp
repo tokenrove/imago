@@ -13,17 +13,30 @@
 (in-package :imago)
 
 
-(defgeneric convert-to-rgb (image))
+(defgeneric convert-to-rgb (image)
+  (:method ((image image))
+    (error 'not-implemented))
+  (:method ((image rgb-image))
+    image))
 
-(defgeneric convert-to-grayscale (image))
+(defgeneric convert-to-grayscale (image)
+  (:method ((image image))
+    (error 'not-implemented))
+  (:method ((image grayscale-image))
+    image))
 
-(defgeneric convert-to-indexed (image))
+(defgeneric convert-to-indexed (image)
+  (:method ((image image))
+    (error 'not-implemented))
+  (:method ((image indexed-image))
+    image))
 
-(defgeneric convert-to-planar (image))
+(defgeneric convert-to-planar (image)
+  (:method ((image image))
+    (error 'not-implemented))
+  (:method ((image planar-image))
+    image))
 
-
-(defmethod convert-to-rgb ((image rgb-image))
-  image)
 
 (defmethod convert-to-rgb ((image indexed-image))
   (let* ((width (image-width image))
@@ -52,6 +65,7 @@
               (make-color gray gray gray))))
     result))
 
+
 (defmethod convert-to-grayscale ((image rgb-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -63,9 +77,6 @@
       (let ((intensity (color-intensity (row-major-aref pixels i))))
         (setf (row-major-aref result-pixels i) (make-gray intensity))))
     result))
-
-(defmethod convert-to-grayscale ((image grayscale-image))
-  image)
 
 (defmethod convert-to-grayscale ((image indexed-image))
   (let* ((width (image-width image))
@@ -81,9 +92,6 @@
               (make-gray (color-intensity (aref colormap color-index))))))
     result))
 
-(defmethod convert-to-indexed ((image rgb-image))
-  (error 'not-implemented))
-
 
 (defmethod convert-to-indexed ((image grayscale-image))
   (let* ((width (image-width image))
@@ -98,9 +106,3 @@
       (setf (row-major-aref result-pixels i)
             (gray-intensity (row-major-aref pixels i))))
     result))
-
-(defmethod convert-to-indexed ((image indexed-image))
-  image)
-
-(defmethod convert-to-planar ((image image))
-  (error 'not-implemented))
