@@ -3,8 +3,18 @@
 (defgeneric translate-to-imago-format (image color-type)
   (:documentation "Convert IMAGE from pngload format to imago format"))
 
+;; KLUDGE: pngload does not signal its own conditions most of the time.
+;; Re-signal decode-error if something like simple-error is signalled
+(defun pngload-safely (pathname)
+  (handler-case
+      (pngload:load-file pathname)
+    ((and error (not pngload::png-error)) ()
+      (error 'decode-error
+             :format-control "Invalid PNG file: ~a"
+             :format-arguments (list pathname)))))
+
 (defun read-pngload (pathname)
-  (let ((image (pngload:load-file pathname)))
+  (let ((image (pngload-safely pathname)))
     (if (= (pngload:bit-depth image) 16)
         (error 'decode-error
                :format-control "16 bit color is not supported"))
