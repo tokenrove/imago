@@ -67,4 +67,9 @@
            #:read-tga #:write-tga
            #:read-pcx #:write-pcx
 
-           #:enhance-contrast))
+           #:enhance-contrast
+
+           ;; Algorithms for binary images
+           #:label-components
+           #:*cross-pattern*
+           #:*square-pattern*))

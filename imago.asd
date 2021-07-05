@@ -29,6 +29,7 @@
                (:file "drawing" :depends-on ("image-utilities" "color"))
                (:file "convert" :depends-on ("image" "color"))
                (:file "convolve" :depends-on ("image" "color"))
+               (:file "components" :depends-on ("image"))
                (:file "compose" :depends-on ("image" "color"))
                (:file "contrast" :depends-on ("image" "color"))
                (:file "operations" :depends-on ("image" "color"))
