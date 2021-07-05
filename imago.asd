@@ -36,6 +36,7 @@
                (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
                (:file "file-pnm" :depends-on ("image" "color" "file"))
                (:file "file-tga" :depends-on ("image" "color" "file"))
+               #+nil
                (:file "file-pcx" :depends-on ("image" "color" "file"))
                (:file "file-jpg" :depends-on ("image" "color" "file")))
   :in-order-to ((test-op (load-op "imago/tests")))
