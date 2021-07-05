@@ -37,6 +37,12 @@
   (:method ((image planar-image))
     image))
 
+(defgeneric convert-to-binary (image threshold)
+  (:method ((image image) threshold)
+    (error 'not-implemented))
+  (:documentation "Convert to binary image by thresholding pixels of
+the image"))
+
 
 (defmethod convert-to-rgb ((image indexed-image))
   (let* ((width (image-width image))
@@ -92,6 +98,18 @@
               (make-gray (color-intensity (aref colormap color-index))))))
     result))
 
+(defmethod convert-to-grayscale ((image binary-image))
+  (let* ((width (image-width image))
+         (height (image-height image))
+         (pixels (image-pixels image))
+         (result (make-instance 'grayscale-image
+                                :width width :height height))
+         (result-pixels (image-pixels result)))
+    (dotimes (i (* width height))
+      (setf (row-major-aref result-pixels i)
+            (* 255 (row-major-aref pixels i))))
+    result))
+
 
 (defmethod convert-to-indexed ((image grayscale-image))
   (let* ((width (image-width image))
@@ -105,4 +123,31 @@
     (dotimes (i (* width height))
       (setf (row-major-aref result-pixels i)
             (gray-intensity (row-major-aref pixels i))))
+    result))
+
+
+(defmethod convert-to-binary ((image rgb-image) (threshold integer))
+  (let* ((width (image-width image))
+         (height (image-height image))
+         (pixels (image-pixels image))
+         (result (make-instance 'binary-image
+                                :width width :height height))
+         (result-pixels (image-pixels result)))
+    (dotimes (i (* width height))
+      (let ((intensity (color-intensity (row-major-aref pixels i))))
+        (setf (row-major-aref result-pixels i)
+              (if (< intensity threshold) 0 1))))
+    result))
+
+(defmethod convert-to-binary ((image grayscale-image) (threshold integer))
+  (let* ((width (image-width image))
+         (height (image-height image))
+         (pixels (image-pixels image))
+         (result (make-instance 'binary-image
+                                :width width :height height))
+         (result-pixels (image-pixels result)))
+    (dotimes (i (* width height))
+      (let ((intensity (gray-intensity (row-major-aref pixels i))))
+        (setf (row-major-aref result-pixels i)
+              (if (< intensity threshold) 0 1))))
     result))

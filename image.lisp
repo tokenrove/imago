@@ -55,6 +55,18 @@ in the image."))
     (format stream "(~Dx~D)" (image-width object) (image-height object))))
 
 
+(defmacro add-generic-initializer (image-type pixel-type)
+  `(defmethod initialize-instance :after ((image ,image-type) &rest initargs
+                                          &key width height pixels)
+     (declare (ignore initargs))
+     (cond ((not (null pixels))
+            (setf (slot-value image 'pixels) pixels))
+           ((and (numberp width) (numberp height))
+            (setf (slot-value image 'pixels)
+                  (make-array (list height width)
+                              :element-type ',pixel-type)))
+           (t (error "Invalid initialization arguments")))))
+
 (defclass rgb-image (image)
   ((pixels :type (simple-array rgb-pixel (* *))
            :reader image-pixels))
@@ -62,17 +74,7 @@ in the image."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(defmethod initialize-instance :after ((image rgb-image) &rest initargs
-                                       &key width height pixels)
-  (declare (ignore initargs))
-  (cond ((not (null pixels))
-         (setf (slot-value image 'pixels) pixels))
-        ((and (numberp width) (numberp height))
-         (setf (slot-value image 'pixels)
-               (make-array (list height width)
-                           :element-type 'rgb-pixel)))
-        (t (error "Invalid initialization arguments"))))
-
+(add-generic-initializer rgb-image rgb-pixel)
 (defmethod pixel-size ((image rgb-image)) 4)
 
 
@@ -83,17 +85,7 @@ parameters."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(defmethod initialize-instance :after ((image grayscale-image) &rest initargs
-                                       &key width height pixels)
-  (declare (ignore initargs))
-  (cond ((not (null pixels))
-         (setf (slot-value image 'pixels) pixels))
-        ((and (numberp width) (numberp height))
-         (setf (slot-value image 'pixels)
-               (make-array (list height width)
-                           :element-type 'grayscale-pixel)))
-        (t (error "Invalid initialization arguments"))))
-
+(add-generic-initializer grayscale-image grayscale-pixel)
 (defmethod pixel-size ((image grayscale-image)) 2)
 
 
@@ -167,3 +159,14 @@ plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
 (defmethod pixel-size ((image planar-image))
   (/ (image-plane-count image) 8))
 
+(defclass binary-image (image)
+  ((pixels :type (simple-array bit (* *))
+           :reader image-pixels))
+  (:documentation "The class for binary images whose pixels are just 0
+  or 1. Image dimensions must be provided to MAKE-INSTANCE, through
+  the :WIDTH and :HEIGHT keyword parameters."))
+
+(add-generic-initializer binary-image bit)
+;; Better leave this undefined
+#+nil
+(defmethod pixel-size ((image binary-image)) 1)

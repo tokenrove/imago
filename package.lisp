@@ -18,7 +18,7 @@
            #:image-width #:image-height
            #:image-plane-count #:image-colormap
            #:image-pixels #:image-pixel
-           #:rgb-image #:indexed-image #:grayscale-image #:planar-image
+           #:rgb-image #:indexed-image #:grayscale-image #:planar-image #:binary-image
            #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
 
            #:imago-condition #:imago-error
@@ -42,7 +42,7 @@
            #:+cyan+ #:+magenta+ #:+yellow+
 
            #:convert-to-rgb #:convert-to-indexed #:convert-to-grayscale
-           #:convert-to-planar
+           #:convert-to-planar #:convert-to-binary ; Aka threshold
 
            #:copy
            #:flip #:scale #:resize #:crop
