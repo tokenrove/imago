@@ -68,9 +68,18 @@ corresponding to IMAGE, then evaluates the body."
   "Iterates through all pixels of an image. For each pixel,
 X and Y are bound to the pixel coordinates, and COLOR is a
 generalized variable corresponding to the pixel color."
-  `(do-region-pixels (,image ,color ,x ,y
-                      0 0 (image-width ,image) (image-height ,image))
-    ,@body))
+  (with-gensyms (width height pixels)
+    `(let ((,width  (image-width  ,image))
+           (,height (image-height ,image))
+           (,pixels (image-pixels ,image)))
+       (declare (ignorable ,pixels)
+                (type fixnum ,width ,height))
+       (symbol-macrolet ((,color (aref ,pixels ,y ,x)))
+         (dotimes (,y ,height)
+           (declare (type fixnum ,y))
+           (dotimes (,x ,width)
+             (declare (type fixnum ,x))
+             ,@body))))))
 
 (defmacro do-region-pixels ((image color x y
                              region-x region-y region-width region-height)
