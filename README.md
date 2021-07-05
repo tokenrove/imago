@@ -147,3 +147,48 @@ All usage examples are taken from
 | Original | Processed |
 | -------- | --------- |
 | ![Original](docs/citynight.png) | ![Processed](docs/citynight-sea.png) |
+
+### Connected components labeling
+
+This example requires snakes and array-operations systems (available in
+quicklisp).
+
+~~~~{.lisp}
+(defpackage components-example
+  (:use #:cl
+        #:snakes
+        #:imago)
+  (:export #:convert-to-image))
+(in-package :components-example)
+
+(defgenerator generate-colors ()
+  (loop while t do
+    (yield (make-color (random 256)
+                       (random 256)
+                       (random 256)))))
+
+(defgenerator black ()
+  (yield (make-color 0 0 0)))
+
+(defun convert-to-image (components)
+  (declare (type (simple-array fixnum (* *)) components))
+  (let ((colors (take (1+ (reduce #'max (aops:flatten components)))
+                      (chain (black)
+                             (generate-colors))))
+        (image (make-array (array-dimensions components)
+                           :element-type 'rgb-pixel)))
+    (array-operations/utilities:nested-loop (i j)
+        (array-dimensions components)
+      (setf (aref image i j)
+            (nth (aref components i j) colors)))
+    (make-instance 'rgb-image :pixels image)))
+
+(in-package :cl-user)
+(let* ((image (imago:read-image "~/.quicklisp/local-projects/imago/tests/spheres.png"))
+       (components (imago:label-components (imago:convert-to-binary image 1))))
+  (components-example:convert-to-image components))
+~~~~
+
+| Original | Processed |
+| -------- | --------- |
+| ![Original](tests/spheres.png) | ![Processed](docs/spheres-colored.png) |

@@ -50,7 +50,7 @@
   :version "0.9.0"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
-  :depends-on (:imago :fiveam)
+  :depends-on (:imago :fiveam :array-operations)
   :pathname "tests/"
   :components ((:file "package")
                (:file "tests" :depends-on ("package"))))

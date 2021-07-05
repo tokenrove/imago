@@ -12,6 +12,10 @@
   (asdf:system-relative-pathname
    :imago/tests "tests/parrot-indexed.png"))
 
+(defparameter *spheres-image-pathname*
+  (asdf:system-relative-pathname
+   :imago/tests "tests/spheres.png"))
+
 (defun temporary-filename (format)
   (asdf:system-relative-pathname
    :imago/tests
@@ -23,12 +27,17 @@
   (flet ((run-suite (suite)
            (explain! (run suite))))           
     (every #'run-suite
-           '(read-write conversions processing contrast-enhancement))))
+           '(read-write
+             conversions
+             processing
+             contrast-enhancement
+             binary-images))))
 
 (def-suite read-write  :description "Image reading and writing")
 (def-suite conversions :description "Conversions to different color spaces")
 (def-suite processing  :description "Various image processing functions")
 (def-suite contrast-enhancement :description "Functions to enhance contrast of images")
+(def-suite binary-images :description "Algorithms for binary images")
 
 (in-suite read-write)
 (defun test-read-write (image format)
@@ -143,3 +152,10 @@
 
     (do-image-pixels ((enhance-contrast image) gray x y)
       (is (= (gray-intensity gray) (aref enhanced-grays x y))))))
+
+(in-suite binary-images)
+(test label-components
+  (let* ((image (read-image *spheres-image-pathname*))
+         (components (label-components (convert-to-binary image 1))))
+    ;; Count number os spheres
+    (is (= (reduce #'max (aops:flatten components)) 10))))

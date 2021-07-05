@@ -18,7 +18,9 @@
   '((-1  0)
     ( 0 -1)
     ( 0  1)
-    ( 1  0)))
+    ( 1  0))
+  "Neighborhood pattern for Manhattan distance. Two pixels are
+considered neighbors if Manhattan distance between them is 1")
 
 (defparameter *square-pattern*
   '((-1 -1)
@@ -28,7 +30,9 @@
     ( 0  1)
     ( 1 -1)
     ( 1  0)
-    ( 1  1)))
+    ( 1  1))
+  "Neighborhood pattern for Chebyshev distance. Two pixels are
+considered neighbors if Chebyshev distance between them is 1")
 
 (declaim (inline clamp)
          (ftype (function (fixnum fixnum fixnum)
@@ -51,6 +55,10 @@
 
 
 (defun label-components (image &key (connectivity *cross-pattern*))
+  "Perform connected components labeling on binary image. Pixels with
+value zero are considered background. Each cluster gets a unique
+integer label. The result is returned in an array of fixnums with the
+same dimenions as image."
   (declare (type binary-image image)
            (type list connectivity))
   (with-image-definition (image width height pixels)
