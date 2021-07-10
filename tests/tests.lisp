@@ -16,6 +16,10 @@
   (asdf:system-relative-pathname
    :imago/tests "tests/spheres.png"))
 
+(defparameter *spheres-connected-image-pathname*
+  (asdf:system-relative-pathname
+   :imago/tests "tests/spheres-connected.png"))
+
 (defun temporary-filename (format)
   (asdf:system-relative-pathname
    :imago/tests
@@ -156,6 +160,18 @@
 (in-suite binary-images)
 (test label-components
   (let* ((image (read-image *spheres-image-pathname*))
-         (components (label-components (convert-to-binary image 1))))
+         (components (label-components (convert-to-binary image 10))))
     ;; Count number os spheres
     (is (= (reduce #'max (aops:flatten components)) 10))))
+
+(test label-components+erosion
+  (let* ((image (read-image *spheres-connected-image-pathname*))
+         (components (label-components (erode (convert-to-binary image 10)))))
+    ;; Count number os spheres
+    (is (= (reduce #'max (aops:flatten components)) 10))))
+
+(test label-components+dilation
+  (let* ((image (read-image *spheres-connected-image-pathname*))
+         (components (label-components (dilate (convert-to-binary image 10)))))
+    ;; Count number os spheres
+    (is (= (reduce #'max (aops:flatten components)) 1))))
