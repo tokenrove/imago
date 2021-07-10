@@ -98,6 +98,25 @@ same dimenions as image."
                   finally (incf current-label delta)))))
       output)))
 
+(defun component-boxes (components)
+  "Return bounding boxes ((XMIN YMIN) (XMAX YMAX)) for connected
+components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
+  (declare (type (simple-array fixnum (* *)) components))
+  (let ((initial-box '((#.most-positive-fixnum
+                        #.most-positive-fixnum)
+                       (0 0)))
+        (boxes (make-hash-table)))
+    (do-array-elements (components element x y)
+      (destructuring-bind (min max)
+          (gethash element boxes initial-box)
+        (setf (gethash element boxes)
+              (list
+               (mapcar #'min min (list x y))
+               (mapcar #'max max (list x y))))))
+    (loop for component fixnum from 1 by 1
+          for box = (gethash component boxes)
+          while box collect box)))
+
 ;; Stolen from convolve.lisp ;)
 (defun erode (image)
   "Erode binary image with 3x3 square structuring component."
