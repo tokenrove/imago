@@ -55,16 +55,17 @@ in the image."))
     (format stream "(~Dx~D)" (image-width object) (image-height object))))
 
 
-(defmacro add-generic-initializer (image-type pixel-type)
+(defmacro add-generic-initializer (image-type pixel-type init-color-form)
   `(defmethod initialize-instance :after ((image ,image-type) &rest initargs
-                                          &key width height pixels)
+                                          &key width height pixels (initial-color ,init-color-form))
      (declare (ignore initargs))
      (cond ((not (null pixels))
             (setf (slot-value image 'pixels) pixels))
            ((and (numberp width) (numberp height))
             (setf (slot-value image 'pixels)
                   (make-array (list height width)
-                              :element-type ',pixel-type)))
+                              :element-type ',pixel-type
+                              :initial-element initial-color)))
            (t (error "Invalid initialization arguments")))))
 
 (defclass rgb-image (image)
@@ -74,7 +75,7 @@ in the image."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(add-generic-initializer rgb-image rgb-pixel)
+(add-generic-initializer rgb-image rgb-pixel (make-color 0 0 0))
 (defmethod pixel-size ((image rgb-image)) 4)
 
 
@@ -85,7 +86,7 @@ parameters."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(add-generic-initializer grayscale-image grayscale-pixel)
+(add-generic-initializer grayscale-image grayscale-pixel (make-gray 0))
 (defmethod pixel-size ((image grayscale-image)) 2)
 
 
@@ -166,7 +167,7 @@ plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
   or 1. Image dimensions must be provided to MAKE-INSTANCE, through
   the :WIDTH and :HEIGHT keyword parameters."))
 
-(add-generic-initializer binary-image bit)
+(add-generic-initializer binary-image bit 0)
 ;; Better leave this undefined
 #+nil
 (defmethod pixel-size ((image binary-image)) 1)
