@@ -1,5 +1,5 @@
 ;;; IMAGO library
-;;; Connectivity labeling
+;;; Morphology functions
 ;;;
 ;;; Copyright (C) 2021
 ;;; Matthieu Villeneuve (matthieu.villeneuve@free.fr), Vasily Postnicov (shamaz.mazum@gmail.com)
@@ -11,8 +11,6 @@
 ;;; known as the LLGPL.
 
 (in-package :imago)
-
-(declaim (optimize (speed 3)))
 
 (defparameter *cross-pattern*
   '((-1  0)
@@ -39,7 +37,8 @@ considered neighbors if Chebyshev distance between them is 1")
                           (values fixnum &optional))
                 clamp))
 (defun clamp (x min max)
-  (declare (type fixnum x min max))
+  (declare (type fixnum x min max)
+           (optimize (speed 3)))
   (max (min x max) min))
 
 (declaim (inline add-indices)
@@ -47,6 +46,7 @@ considered neighbors if Chebyshev distance between them is 1")
                           (values list &optional))
                 add-indices))
 (defun add-indices (x y dimensions)
+  (declare (optimize (speed 3)))
   (mapcar
    (lambda (x y max)
      (declare (type fixnum x y max))
@@ -60,7 +60,8 @@ value zero are considered background. Each cluster gets a unique
 integer label. The result is returned in an array of fixnums with the
 same dimenions as image."
   (declare (type binary-image image)
-           (type list connectivity))
+           (type list connectivity)
+           (optimize (speed 3)))
   (with-image-definition (image width height pixels)
     (declare (type (simple-array bit (* *)) pixels))
     (let* ((dimensions (list height width))
@@ -96,3 +97,48 @@ same dimenions as image."
                            connectivity))
                   finally (incf current-label delta)))))
       output)))
+
+;; Stolen from convolve.lisp ;)
+(defun erode (image)
+  "Erode binary image with 3x3 square structuring component."
+  (declare (type binary-image image))
+  (with-image-definition (image width height pixels)
+    (declare (ignore pixels))
+    (let ((image2 (make-instance 'binary-image
+                                 :width  width
+                                 :height height)))
+      (do-image-pixels (image2 pixel2 x y)
+        (setf pixel2
+              (if (= (loop for dy from -1 to 1
+                           as y2 = (+ y dy)
+                           when (<= 0 y2 (1- height))
+                             sum
+                             (loop for dx from -1 to 1
+                                   as x2 = (+ x dx)
+                                   when (<= 0 x2 (1- width))
+                                     sum (image-pixel image x2 y2)))
+                     9)
+                  1 0)))
+      image2)))
+
+(defun dilate (image)
+  "Dilate binary image with 3x3 square structuring component."
+  (declare (type binary-image image))
+  (with-image-definition (image width height pixels)
+    (declare (ignore pixels))
+    (let ((image2 (make-instance 'binary-image
+                                 :width  width
+                                 :height height)))
+      (do-image-pixels (image2 pixel2 x y)
+        (setf pixel2
+              (if (> (loop for dy from -1 to 1
+                           as y2 = (+ y dy)
+                           when (<= 0 y2 (1- height))
+                             sum
+                             (loop for dx from -1 to 1
+                                   as x2 = (+ x dx)
+                                   when (<= 0 x2 (1- width))
+                                     sum (image-pixel image x2 y2)))
+                     0)
+                  1 0)))
+      image2)))
