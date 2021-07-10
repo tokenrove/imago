@@ -109,16 +109,14 @@ same dimenions as image."
                                  :height height)))
       (do-image-pixels (image2 pixel2 x y)
         (setf pixel2
-              (if (= (loop for dy from -1 to 1
-                           as y2 = (+ y dy)
-                           when (<= 0 y2 (1- height))
-                             sum
-                             (loop for dx from -1 to 1
-                                   as x2 = (+ x dx)
-                                   when (<= 0 x2 (1- width))
-                                     sum (image-pixel image x2 y2)))
-                     9)
-                  1 0)))
+              (loop for dy from -1 to 1
+                    as y2 = (+ y dy)
+                    when (<= 0 y2 (1- height))
+                      minimize
+                      (loop for dx from -1 to 1
+                            as x2 = (+ x dx)
+                            when (<= 0 x2 (1- width))
+                              minimize (image-pixel image x2 y2)))))
       image2)))
 
 (defun dilate (image)
@@ -131,14 +129,12 @@ same dimenions as image."
                                  :height height)))
       (do-image-pixels (image2 pixel2 x y)
         (setf pixel2
-              (if (> (loop for dy from -1 to 1
-                           as y2 = (+ y dy)
-                           when (<= 0 y2 (1- height))
-                             sum
-                             (loop for dx from -1 to 1
-                                   as x2 = (+ x dx)
-                                   when (<= 0 x2 (1- width))
-                                     sum (image-pixel image x2 y2)))
-                     0)
-                  1 0)))
+              (loop for dy from -1 to 1
+                    as y2 = (+ y dy)
+                    when (<= 0 y2 (1- height))
+                      maximize
+                      (loop for dx from -1 to 1
+                            as x2 = (+ x dx)
+                            when (<= 0 x2 (1- width))
+                              maximize (image-pixel image x2 y2)))))
       image2)))
