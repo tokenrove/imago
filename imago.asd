@@ -18,7 +18,7 @@
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
   :license "LLGPL"
   :version "0.9.0"
-  :depends-on (:zlib :cl-jpeg :alexandria)
+  :depends-on (:zlib :cl-jpeg :alexandria :array-operations)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))
@@ -50,7 +50,7 @@
   :version "0.9.0"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
-  :depends-on (:imago :fiveam :array-operations)
+  :depends-on (:imago :fiveam)
   :pathname "tests/"
   :components ((:file "package")
                (:file "tests" :depends-on ("package"))))

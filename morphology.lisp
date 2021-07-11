@@ -106,13 +106,15 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                         #.most-positive-fixnum)
                        (0 0)))
         (boxes (make-hash-table)))
-    (do-array-elements (components element x y)
-      (destructuring-bind (min max)
-          (gethash element boxes initial-box)
-        (setf (gethash element boxes)
-              (list
-               (mapcar #'min min (list x y))
-               (mapcar #'max max (list x y))))))
+    (array-operations/utilities:nested-loop (y x)
+        (array-dimensions components)
+      (let ((element (aref components y x)))
+        (destructuring-bind (min max)
+            (gethash element boxes initial-box)
+          (setf (gethash element boxes)
+                (list
+                 (mapcar #'min min (list x y))
+                 (mapcar #'max max (list x y)))))))
     (loop for component fixnum from 1 by 1
           for box = (gethash component boxes)
           while box collect box)))

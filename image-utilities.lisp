@@ -56,18 +56,6 @@ as IMAGE."))
                       (= (image-height image) height)))
                (rest images)))))
 
-(defmacro do-array-elements ((array element x y) &body body)
-  (with-gensyms (width height)
-    `(destructuring-bind (,height ,width)
-         (array-dimensions ,array)
-       (declare (type fixnum ,width ,height))
-       (symbol-macrolet ((,element (aref ,array ,y ,x)))
-         (dotimes (,y ,height)
-           (declare (type fixnum ,y))
-           (dotimes (,x ,width)
-             (declare (type fixnum ,x))
-             ,@body))))))
-
 (defmacro with-image-definition ((image width height pixels) &body body)
   "Binds the WIDTH, HEIGHT and PIXELS variables to the values
 corresponding to IMAGE, then evaluates the body."
