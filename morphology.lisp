@@ -159,3 +159,47 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                             when (<= 0 x2 (1- width))
                               maximize (image-pixel image x2 y2)))))
       image2)))
+
+(declaim
+ (ftype
+  (function ((array fixnum (*)))
+            (values (array fixnum (*)) &optional))
+  do-mdt-pass))
+(defun do-mdt-pass (array)
+  (declare (type (array fixnum (*)) array))
+  (let ((length (length array)))
+    (loop for i from 1 below length do
+      (setf (aref array i)
+            (min (1+ (aref array (1- i)))
+                 (aref array i))))
+    (loop for i from (- length 2) downto 0 do
+      (setf (aref array i)
+            (min (1+ (aref array (1+ i)))
+                 (aref array i))))
+    array))
+
+(defun manhattan-distance-transform (image)
+  "Perform Manhattan distance transform on a binary image."
+  (declare (type binary-image image))
+  (with-image-definition (image width height pixels)
+    (let ((distances (make-array (list height width)
+                                 :element-type 'fixnum)))
+      ;; Initialize the array with distances
+      (map-into (aops:flatten distances)
+                (lambda (x) (* (- 1 x) most-positive-fixnum))
+                (aops:flatten pixels))
+      ;; Walk through the rows of the array and calculate MDT for each
+      ;; row separately.
+      (dotimes (row height)
+        (do-mdt-pass (make-array width
+                                 :element-type 'fixnum
+                                 :displaced-to distances
+                                 :displaced-index-offset (* row width))))
+      ;; Now walk through the columns. Have to permute the array for that :(
+      (let ((permutation (aops:permute '(1 0) distances)))
+        (dotimes (column width)
+          (do-mdt-pass (make-array height
+                                   :element-type 'fixnum
+                                   :displaced-to permutation
+                                   :displaced-index-offset (* column height))))
+        (aops:permute '(1 0) permutation)))))

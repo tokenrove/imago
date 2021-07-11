@@ -74,5 +74,6 @@
            #:component-boxes
            #:erode
            #:dilate
+           #:manhattan-distance-transform
            #:*cross-pattern*
            #:*square-pattern*))

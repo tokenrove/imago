@@ -151,11 +151,16 @@
                             (146 206 130 117 85 166 182 215)))
         (image (make-instance 'grayscale-image :width 8 :height 8)))
 
-    (do-image-pixels (image gray x y)
-      (setf gray (make-gray (aref grays x y))))
-
-    (do-image-pixels ((enhance-contrast image) gray x y)
-      (is (= (gray-intensity gray) (aref enhanced-grays x y))))))
+    (map-into (aops:flatten (image-pixels image))
+              #'make-gray
+              (aops:flatten grays))
+    (is-true
+     (every #'identity
+            (map 'vector
+                 (lambda (pixel intensity)
+                   (= (gray-intensity pixel) intensity))
+                 (aops:flatten (image-pixels (enhance-contrast image)))
+                 (aops:flatten enhanced-grays))))))
 
 (in-suite binary-images)
 (test label-components
@@ -175,3 +180,13 @@
          (components (label-components (dilate (convert-to-binary image 10)))))
     ;; Count number os spheres
     (is (= (reduce #'max (aops:flatten components)) 1))))
+
+(test mdt-with-one-feature-pixel
+  (let ((image (make-instance 'binary-image
+                              :width 5
+                              :height 5)))
+    (setf (image-pixel image 0 0) 1)
+    (let ((distance (manhattan-distance-transform image)))
+      (array-operations/utilities:nested-loop (i j)
+          (array-dimensions distance)
+        (is (= (aref distance i j) (+ i j)))))))
