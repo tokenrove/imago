@@ -61,7 +61,8 @@
            #:register-image-reader #:register-image-writer
            #:register-image-io-functions
 
-           #:read-jpg #:write-jpg
+           ;; Export write-jpg-stream for jupyter
+           #:read-jpg #:write-jpg #:write-jpg-stream
            #:read-png #:write-png
            #:read-pnm #:write-pnm
            #:read-tga #:write-tga

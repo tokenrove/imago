@@ -74,3 +74,16 @@
   :pathname "pngload/"
   :components ((:file "package")
                (:file "file-png" :depends-on ("package"))))
+
+(defsystem :imago/jupyter
+  :name :imago/jupyter
+  :version "0.1"
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago
+               :common-lisp-jupyter
+               :cl-base64
+               :flexi-streams)
+  :pathname "jupyter/"
+  :components ((:file "package")
+               (:file "jupyter" :depends-on ("package"))))
