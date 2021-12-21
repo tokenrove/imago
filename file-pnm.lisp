@@ -116,6 +116,7 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                 (color-green rgb)
                 (color-blue rgb))))))
 
+#+nil
 (defmethod write-pnm-to-stream ((image rgb-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image)))
@@ -131,6 +132,7 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
     (with-write-pnm-loop (stream x y pixels 2 255)
       (format stream "~A~%" (gray-intensity (image-pixel image x y))))))
 
+#+nil
 (defmethod write-pnm-to-stream ((image grayscale-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image)))
@@ -148,6 +150,7 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                 (color-green pixel-rgb)
                 (color-blue pixel-rgb))))))
 
+#+nil
 (defmethod write-pnm-to-stream ((image indexed-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image))
@@ -162,4 +165,4 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                              :reader #'read-pnm
                              :writer #'(lambda (image filespec)
                                          ;; TODO: need parameter here
-                                         (write-pnm image filespec :binary)))
+                                         (write-pnm image filespec :ascii)))
