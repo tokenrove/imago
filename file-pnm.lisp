@@ -23,6 +23,9 @@ a newly created image correponding to those data."
   (skip-whitespace-and-comments stream)
   (read-number stream))
 
+(defun read-ascii-gray-pixel (stream)
+  (make-gray (read-number2 stream)))
+
 (defun read-ascii-rgb-pixel (stream)
   (let* ((r (read-number2 stream))
          (g (read-number2 stream))
@@ -46,9 +49,9 @@ a newly created image correponding to those data."
               (make-instance 'rgb-image :width width :height height)))))
   
 (defparameter +pnm-pixel-readers+
-  `((2 . ,#'read-number2)
+  `((2 . ,#'read-ascii-gray-pixel)
     (3 . ,#'read-ascii-rgb-pixel)
-    (5 . ,#'(lambda (stream) (char-code (read-char stream))))
+    (5 . ,#'(lambda (stream) (make-gray (char-code (read-char stream)))))
     (6 . ,#'read-bin-rgb-pixel)))
 
 (defun read-pnm-from-stream (stream)
@@ -126,13 +129,13 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                                 (output-format (eql :ascii)))
   (let ((pixels (image-pixels image)))
     (with-write-pnm-loop (stream x y pixels 2 255)
-      (format stream "~A~%" (image-pixel image x y)))))
+      (format stream "~A~%" (gray-intensity (image-pixel image x y))))))
 
 (defmethod write-pnm-to-stream ((image grayscale-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image)))
     (with-write-pnm-loop (stream x y pixels 5 255)
-      (write-char (code-char (image-pixel image x y)) stream))))
+      (write-char (code-char (gray-intensity (image-pixel image x y))) stream))))
 
 (defmethod write-pnm-to-stream ((image indexed-image) stream
                                 (output-format (eql :ascii)))
