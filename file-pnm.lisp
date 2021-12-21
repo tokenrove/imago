@@ -16,7 +16,9 @@
 (defun read-pnm (filespec)
   "Reads data for an image in PNM format from a file, and returns
 a newly created image correponding to those data."
-  (with-open-file (stream filespec :direction :input)
+  (with-open-file (stream filespec
+                          :direction :input
+                          :external-format :latin-1)
     (read-pnm-from-stream stream)))
 
 (defun read-number2 (stream)
@@ -86,7 +88,10 @@ a newly created image correponding to those data."
 (defun write-pnm (image filespec output-format)
   "Writes the image data to a file in PNM format.
 OUTPUT-FORMAT can be either :ASCII or :BINARY."
-  (with-open-file (stream filespec :direction :output :if-exists :supersede)
+  (with-open-file (stream filespec
+                          :direction       :output
+                          :if-exists       :supersede
+                          :external-format :latin-1)
     (write-pnm-to-stream image stream output-format))
   image)
 
@@ -116,7 +121,6 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                 (color-green rgb)
                 (color-blue rgb))))))
 
-#+nil
 (defmethod write-pnm-to-stream ((image rgb-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image)))
@@ -132,7 +136,6 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
     (with-write-pnm-loop (stream x y pixels 2 255)
       (format stream "~A~%" (gray-intensity (image-pixel image x y))))))
 
-#+nil
 (defmethod write-pnm-to-stream ((image grayscale-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image)))
@@ -150,7 +153,6 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
                 (color-green pixel-rgb)
                 (color-blue pixel-rgb))))))
 
-#+nil
 (defmethod write-pnm-to-stream ((image indexed-image) stream
                                 (output-format (eql :binary)))
   (let ((pixels (image-pixels image))
