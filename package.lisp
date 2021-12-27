@@ -46,6 +46,7 @@
 
            #:copy
            #:flip #:scale #:resize #:crop
+           #:*default-interpolation*
 
            #:draw-point #:draw-line
            #:draw-rectangle #:draw-polygon
