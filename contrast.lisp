@@ -3,7 +3,7 @@
 (defgeneric enhance-contrast (image)
   (:documentation "Enhance the contrast of an image"))
 
-(deftype histogram () '(simple-array non-negative-fixnum))
+(deftype histogram () '(simple-array alex:non-negative-fixnum))
 
 (defmacro do-image-pixels* ((pixel pixels) &body body)
   (let ((i (gensym)))
@@ -16,7 +16,7 @@
   (let ((pixels (image-pixels image))
         (histogram (make-array 256
                                :initial-element 0
-                               :element-type 'non-negative-fixnum)))
+                               :element-type 'alex:non-negative-fixnum)))
     (declare (type histogram histogram)
              (type (simple-array grayscale-pixel (* *)) pixels))
     (do-image-pixels* (pixel pixels)
