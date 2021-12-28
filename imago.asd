@@ -35,6 +35,7 @@
                (:file "convolve" :depends-on ("image" "color"))
                (:file "compose" :depends-on ("image" "color"))
                (:file "contrast" :depends-on ("image" "color"))
+               (:file "interpolate" :depends-on ("image" "color"))
                (:file "operations" :depends-on ("image" "color"))
                (:file "morphology" :depends-on ("image"))
                (:file "file" :depends-on ("conditions"))
