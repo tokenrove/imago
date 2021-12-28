@@ -22,8 +22,7 @@
                :cl-jpeg
                :alexandria
                :serapeum
-               :array-operations
-               :trivial-package-local-nicknames)
+               :array-operations)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))

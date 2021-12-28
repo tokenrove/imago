@@ -14,6 +14,8 @@
 
 (defpackage :imago
   (:use :common-lisp)
+  (:local-nicknames (:alex :alexandria)
+                    (:sera :serapeum))
   (:export #:image
            #:image-width #:image-height
            #:image-plane-count #:image-colormap
@@ -79,8 +81,3 @@
            #:manhattan-distance-transform
            #:*cross-pattern*
            #:*square-pattern*))
-
-;; Hack from nyxt ;)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum   :imago)
-  (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria :imago))
