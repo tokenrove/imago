@@ -25,7 +25,10 @@ the given positions. Both images must be of same type."))
 :VERTICAL. DEST must be either an image of same type and dimensions as
 IMAGE, or NIL. Returns the resulting image."))
 
-(defgeneric interpolate-pixel (image x y method))
+(defgeneric interpolate-pixel (image x y method)
+  (:documentation "Get pixel from the image at point (X, Y) according
+to some interpolation METHOD. X and Y are single floats in the range
+[0, 1]."))
 
 
 (defmethod copy ((dest (eql nil)) (src image)
@@ -148,6 +151,9 @@ OPERATION-ERROR is signalled."
 
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
+  "Returns an newly created image corresponding to the
+IMAGE image, with given dimensions. The only INTERPOLATION-METHOD
+currently supported is :NEAREST-NEIGHBOR."
   (declare (type image image)
            (type alex:positive-fixnum new-width new-height))
   (let ((pixels (make-array (list new-height new-width)
