@@ -159,7 +159,9 @@ OPERATION-ERROR is signalled."
   (+ v1 (* (- v2 v1) x)))
 
 (defun interpolate-pixel-linear (image x y constructor accessors)
-  (declare (type (single-float 0.0 1.0) x y))
+  (declare (type (single-float 0.0 1.0) x y)
+           (type function constructor)
+           (optimize (speed 3)))
   (with-image-definition (image width height pixels)
     (declare (type alex:positive-fixnum width height)
              (type (simple-array * (* *)) pixels))
@@ -173,6 +175,9 @@ OPERATION-ERROR is signalled."
                (pixel-x0-y1 (aref pixels y+1 x))
                (pixel-x1-y1 (aref pixels y+1 x+1)))
           (flet ((interpolate (accessor)
+                   (declare (type (sera:-> ((unsigned-byte 32))
+                                           (values (unsigned-byte 8) &optional))
+                                  accessor))
                    (let ((v1 (linear-interpolation
                               (float (funcall accessor pixel-x0-y0))
                               (float (funcall accessor pixel-x1-y0))
