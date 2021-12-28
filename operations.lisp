@@ -149,6 +149,50 @@ OPERATION-ERROR is signalled."
           (y% (floor (* y height))))
       (aref pixels y% x%))))
 
+(sera:-> linear-interpolation
+         (single-float single-float single-float)
+         (values single-float &optional))
+
+(defun linear-interpolation (v1 v2 x)
+  (declare (optimize (speed 3))
+           (type single-float v1 v2 x))
+  (+ v1 (* (- v2 v1) x)))
+
+(defun interpolate-pixel-linear (image x y constructor accessors)
+  (declare (type (single-float 0.0 1.0) x y))
+  (with-image-definition (image width height pixels)
+    (declare (type alex:positive-fixnum width height)
+             (type (simple-array * (* *)) pixels))
+    (multiple-value-bind (x rem-x) (floor (* x width))
+      (multiple-value-bind (y rem-y) (floor (* y height))
+        (let* ((x+1 (min (1- width)  (1+ x)))
+               (y+1 (min (1- height) (1+ y)))
+
+               (pixel-x0-y0 (aref pixels y   x))
+               (pixel-x1-y0 (aref pixels y   x+1))
+               (pixel-x0-y1 (aref pixels y+1 x))
+               (pixel-x1-y1 (aref pixels y+1 x+1)))
+          (flet ((interpolate (accessor)
+                   (let ((v1 (linear-interpolation
+                              (float (funcall accessor pixel-x0-y0))
+                              (float (funcall accessor pixel-x1-y0))
+                              rem-x))
+                         (v2 (linear-interpolation
+                              (float (funcall accessor pixel-x0-y1))
+                              (float (funcall accessor pixel-x1-y1))
+                              rem-x)))
+                     (floor (linear-interpolation v1 v2 rem-y)))))
+            (apply constructor
+                   (mapcar #'interpolate accessors))))))))
+
+(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :linear)))
+  (interpolate-pixel-linear image x y #'make-gray
+                            (list #'gray-intensity #'gray-alpha)))
+
+(defmethod interpolate-pixel ((image rgb-image) x y (method (eql :linear)))
+  (interpolate-pixel-linear image x y #'make-color
+                            (list #'color-rgb #'color-green #'color-blue #'color-alpha)))
+
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
   "Returns an newly created image corresponding to the
