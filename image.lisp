@@ -14,17 +14,13 @@
 
 
 (defclass image ()
-  ()
+  ((width  :type          alex:positive-fixnum
+           :documentation "Width of the image"
+           :accessor      image-width)
+   (height :type          alex:positive-fixnum
+           :documentation "Height of the image"
+           :accessor      image-height))
   (:documentation "The protocol class for images."))
-
-(defgeneric image-pixels (image)
-  (:documentation "Returns a rectangular array of the image pixels."))
-
-(defgeneric image-width (image)
-  (:documentation "Returns the width of the image."))
-
-(defgeneric image-height (image)
-  (:documentation "Returns the height of the image."))
 
 (defgeneric image-pixel (image x y)
   (:documentation "Returns the color of the pixel at specified coordinates
@@ -38,12 +34,6 @@ in the image."))
   (:documentation "Returns the number of bytes used to represent a pixel."))
 
 
-(defmethod image-width ((image image))
-  (second (array-dimensions (image-pixels image))))
-
-(defmethod image-height ((image image))
-  (first (array-dimensions (image-pixels image))))
-
 (defmethod image-pixel ((image image) x y)
   (aref (image-pixels image) y x))
 
@@ -55,22 +45,31 @@ in the image."))
     (format stream "(~Dx~D)" (image-width object) (image-height object))))
 
 
+;; Dirty hack: I need this method to run AFTER all other methods
+(defmethod initialize-instance :around ((image image) &rest initargs)
+  (declare (ignore initargs))
+  (call-next-method)
+  (let ((pixels (image-pixels image)))
+    (setf (image-height image) (array-dimension pixels 0)
+          (image-width  image) (array-dimension pixels 1))))
+
 (defmacro add-generic-initializer (image-type pixel-type init-color-form)
   `(defmethod initialize-instance :after ((image ,image-type) &rest initargs
                                           &key width height pixels (initial-color ,init-color-form))
      (declare (ignore initargs))
-     (cond ((not (null pixels))
-            (setf (slot-value image 'pixels) pixels))
-           ((and (numberp width) (numberp height))
-            (setf (slot-value image 'pixels)
+     (cond (pixels
+            (setf (image-pixels image) pixels))
+           ((and (integerp width)
+                 (integerp height))
+            (setf (image-pixels image)
                   (make-array (list height width)
                               :element-type ',pixel-type
                               :initial-element initial-color)))
            (t (error "Invalid initialization arguments")))))
 
 (defclass rgb-image (image)
-  ((pixels :type (simple-array rgb-pixel (* *))
-           :reader image-pixels))
+  ((pixels :type     (simple-array rgb-pixel (* *))
+           :accessor image-pixels))
   (:documentation "The class for RGB images. Image dimensions must be
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
@@ -80,8 +79,8 @@ parameters."))
 
 
 (defclass grayscale-image (image)
-  ((pixels :type (simple-array grayscale-pixel (* *))
-           :reader image-pixels))
+  ((pixels :type     (simple-array grayscale-pixel (* *))
+           :accessor image-pixels))
   (:documentation "The class for grayscale images. Image dimensions must be
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
@@ -91,9 +90,10 @@ parameters."))
 
 
 (defclass indexed-image (image)
-  ((pixels :type (simple-array indexed-pixel (* *))
-           :reader image-pixels)
-   (colormap :initarg :colormap :reader image-colormap))
+  ((pixels   :type     (simple-array indexed-pixel (* *))
+             :accessor image-pixels)
+   (colormap :initarg  :colormap
+             :accessor image-colormap))
   (:documentation "The class for indexed images. Image dimensions must be
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters. Also accepts a :COLOR-COUNT keyword parameter, to specify
@@ -104,16 +104,16 @@ the image color count (256 by default)."))
                                             colormap (color-count 256))
   (declare (ignore initargs)
 	   (type fixnum color-count))
-  (cond ((not (null colormap))
-         (setf (slot-value image 'colormap) colormap))
-        ((and (numberp color-count) (<= color-count 256))
-         (setf (slot-value image 'colormap)
+  (cond (colormap
+         (setf (image-colormap image) colormap))
+        ((and (integerp color-count) (<= color-count 256))
+         (setf (image-colormap image)
                (make-array color-count :initial-element 0)))
         (t (error "Invalid initialization arguments")))
-  (cond ((not (null pixels))
-         (setf (slot-value image 'pixels) pixels))
-        ((and (numberp width) (numberp height))
-         (setf (slot-value image 'pixels)
+  (cond (pixels
+         (setf (image-pixels image) pixels))
+        ((and (integerp width) (integerp height))
+         (setf (image-pixels image)
                (make-array (list height width)
                            :element-type 'indexed-pixel)))
         (t (error "Invalid initialization arguments"))))
@@ -124,10 +124,12 @@ the image color count (256 by default)."))
 (defclass planar-image (image)
   ;; XXX: I couldn't get a tighter type specifier to match this,
   ;; because of the parameter to planar-pixel.
-  ((pixels :type simple-array
-           :reader image-pixels)
-   (plane-count :type integer :reader image-plane-count)
-   (colormap :initarg :colormap :reader image-colormap))
+  ((pixels      :type     simple-array
+                :accessor image-pixels)
+   (plane-count :type     integer
+                :accessor image-plane-count)
+   (colormap    :initarg  :colormap
+                :accessor image-colormap))
   (:documentation "The class for planar images.  Image dimensions and
 plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
 :HEIGHT, and :PLANE-COUNT keyword parameters, respectively."))
@@ -136,22 +138,22 @@ plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
                                        &key width height plane-count pixels
                                        colormap)
   (declare (ignore initargs))
-  (unless (numberp plane-count)
+  (unless (integerp plane-count)
     (error "Invalid initialization arguments (you must specify a plane count for this type of image)"))
-  (setf (slot-value image 'plane-count) plane-count)
+  (setf (image-plane-count image) plane-count)
 
-  (cond ((not (null colormap))
+  (cond (colormap
          (assert (= (length colormap) (ash 1 plane-count)))
-         (setf (slot-value image 'colormap) colormap))
+         (setf (image-colormap image) colormap))
         (t
          ;; XXX shouldn't the initial element of the colormap be a
          ;; color (like +black+, not 0)?
-         (setf (slot-value image 'colormap)
+         (setf (image-colormap image)
                (make-array (ash 1 plane-count) :initial-element 0))))
-  (cond ((not (null pixels))
-         (setf (slot-value image 'pixels) pixels))
-        ((and (numberp width) (numberp height))
-         (setf (slot-value image 'pixels)
+  (cond (pixels
+         (setf (image-pixels image) pixels))
+        ((and (integerp width) (integerp height))
+         (setf (image-pixels image)
                (make-array (list height width)
                            :element-type `(planar-pixel ,plane-count)
                            :initial-element 0)))
@@ -161,11 +163,11 @@ plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
   (/ (image-plane-count image) 8))
 
 (defclass binary-image (image)
-  ((pixels :type (simple-array bit (* *))
-           :reader image-pixels))
+  ((pixels :type     (simple-array bit (* *))
+           :accessor image-pixels))
   (:documentation "The class for binary images whose pixels are just 0
-  or 1. Image dimensions must be provided to MAKE-INSTANCE, through
-  the :WIDTH and :HEIGHT keyword parameters."))
+or 1. Image dimensions must be provided to MAKE-INSTANCE, through
+the :WIDTH and :HEIGHT keyword parameters."))
 
 (add-generic-initializer binary-image bit 0)
 ;; Better leave this undefined
