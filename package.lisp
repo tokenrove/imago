@@ -80,5 +80,7 @@
            #:*cross-pattern*
            #:*square-pattern*))
 
+;; Hack from nyxt ;)
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum :imago))
+  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum   :imago)
+  (trivial-package-local-nicknames:add-package-local-nickname :alex :alexandria :imago))

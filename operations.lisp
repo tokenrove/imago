@@ -25,6 +25,8 @@ the given positions. Both images must be of same type."))
 :VERTICAL. DEST must be either an image of same type and dimensions as
 IMAGE, or NIL. Returns the resulting image."))
 
+(defgeneric interpolate-pixel (image x y method))
+
 
 (defmethod copy ((dest (eql nil)) (src image)
                  &key (dest-x 0) (dest-y 0) (src-x 0) (src-y 0) width height)
@@ -134,48 +136,34 @@ OPERATION-ERROR is signalled."
                                (+ y y%))))
     dest))
 
-(defun resize-nearest-neighbor (image new-width new-height)
-  (declare (type image image)
-           (type unsigned-byte new-width new-height))
-  (let* ((dest (make-instance (class-of image)
-                              :width new-width :height new-height))
-         (dest-pixels (image-pixels dest)))
-    (with-image-definition (image image-width image-height image-pixels)
-      (multiple-value-bind (y-step y-errinc)
-          (floor image-height new-height)
-        (multiple-value-bind (x-step x-errinc)
-            (floor image-width new-width)
-          (let ((y-err (floor y-errinc 2))
-                (image-line-index 0)
-                (dest-index 0))
-            (dotimes (y new-height)
-              (let ((x-err (floor x-errinc 2))
-                    (image-index image-line-index))
-                (dotimes (x new-width)
-                  (setf (row-major-aref dest-pixels dest-index)
-                        (row-major-aref image-pixels image-index))
-                  (incf dest-index)
-                  (incf image-index x-step)
-                  (incf x-err x-errinc)
-                  (when (>= x-err new-width)
-                    (incf image-index)
-                    (decf x-err new-width))))
-              (incf image-line-index (* y-step image-width))
-              (incf y-err y-errinc)
-              (when (>= y-err new-height)
-                (incf image-line-index image-width)
-                (decf y-err new-height)))))))
-    dest))
+(defmethod interpolate-pixel ((image image) x y (method (eql :nearest-neighbor)))
+  (declare (type (single-float 0.0 1.0) x y)
+           (optimize (speed 3)))
+  (with-image-definition (image width height pixels)
+    (declare (type alex:positive-fixnum width height)
+             (type (simple-array * (* *)) pixels))
+    (let ((x% (floor (* x width)))
+          (y% (floor (* y height))))
+      (aref pixels y% x%))))
 
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
-  "Returns an newly created image corresponding to the
-IMAGE image, with given dimensions. The only INTERPOLATION-METHOD
-currently supported is :NEAREST-NEIGHBOR."
-  (funcall
-   (ecase interpolation
-     (:nearest-neighbor #'resize-nearest-neighbor))
-   image new-width new-height))
+  (declare (type image image)
+           (type alex:positive-fixnum new-width new-height))
+  (let ((pixels (make-array (list new-height new-width)
+                            :element-type (array-element-type
+                                           (image-pixels image))))
+        (new-width%  (float new-width))
+        (new-height% (float new-height)))
+    (declare (type (simple-array * (* *)) pixels))
+    (array-operations/utilities:nested-loop (y x)
+        (array-dimensions pixels)
+      (setf (aref pixels y x)
+            (interpolate-pixel image
+                               (/ x new-width%)
+                               (/ y new-height%)
+                               interpolation)))
+    (make-instance (class-of image) :pixels pixels)))
 
 (defun scale (image width-factor height-factor
               &key (interpolation *default-interpolation*))
