@@ -32,19 +32,17 @@ considered neighbors if Manhattan distance between them is 1")
   "Neighborhood pattern for Chebyshev distance. Two pixels are
 considered neighbors if Chebyshev distance between them is 1")
 
-(declaim (inline clamp)
-         (ftype (function (fixnum fixnum fixnum)
-                          (values fixnum &optional))
-                clamp))
+(sera:-> clamp (fixnum fixnum fixnum) (values fixnum &optional))
+(declaim (inline clamp))
+
 (defun clamp (x min max)
   (declare (type fixnum x min max)
            (optimize (speed 3)))
   (max (min x max) min))
 
-(declaim (inline add-indices)
-         (ftype (function (list list list)
-                          (values list &optional))
-                add-indices))
+(sera:-> add-indices (list list list) (values list &optional))
+(declaim (inline add-indices))
+
 (defun add-indices (x y dimensions)
   (declare (optimize (speed 3)))
   (mapcar
@@ -160,11 +158,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                               maximize (image-pixel image x2 y2)))))
       image2)))
 
-(declaim
- (ftype
-  (function ((array fixnum (*)))
-            (values (array fixnum (*)) &optional))
-  do-mdt-pass))
+(sera:-> do-mdt-pass
+         ((array fixnum (*)))
+         (values (array fixnum (*)) &optional))
+
 (defun do-mdt-pass (array)
   (declare (type (array fixnum (*)) array))
   (let ((length (length array)))

@@ -18,7 +18,12 @@
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
   :license "LLGPL"
   :version "0.9.0"
-  :depends-on (:zlib :cl-jpeg :alexandria :array-operations)
+  :depends-on (:zlib
+               :cl-jpeg
+               :alexandria
+               :serapeum
+               :array-operations
+               :trivial-package-local-nicknames)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))

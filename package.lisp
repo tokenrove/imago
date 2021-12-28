@@ -79,3 +79,6 @@
            #:manhattan-distance-transform
            #:*cross-pattern*
            #:*square-pattern*))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (trivial-package-local-nicknames:add-package-local-nickname :sera :serapeum :imago))
