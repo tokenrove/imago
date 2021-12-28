@@ -190,19 +190,19 @@ OPERATION-ERROR is signalled."
             (apply constructor
                    (mapcar #'interpolate accessors))))))))
 
-(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :linear)))
+(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :bilinear)))
   (interpolate-pixel-linear image x y #'make-gray
                             (list #'gray-intensity #'gray-alpha)))
 
-(defmethod interpolate-pixel ((image rgb-image) x y (method (eql :linear)))
+(defmethod interpolate-pixel ((image rgb-image) x y (method (eql :bilinear)))
   (interpolate-pixel-linear image x y #'make-color
-                            (list #'color-rgb #'color-green #'color-blue #'color-alpha)))
+                            (list #'color-red #'color-green #'color-blue #'color-alpha)))
 
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
   "Returns an newly created image corresponding to the
-IMAGE image, with given dimensions. The only INTERPOLATION-METHOD
-currently supported is :NEAREST-NEIGHBOR."
+IMAGE image, with given dimensions. Currently supported
+INTERPOLATION-METHODs are :NEAREST-NEIGHBOR and :BILINEAR."
   (declare (type image image)
            (type alex:positive-fixnum new-width new-height))
   (let ((pixels (make-array (list new-height new-width)
