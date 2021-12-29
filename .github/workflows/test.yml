@@ -4,25 +4,22 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: lisp = ${{ matrix.lisp }}, alternative I/O = ${{ matrix.altio }}
+    name: alternative I/O = ${{ matrix.altio }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lisp: [sbcl]
         altio: [YES, NO]
     env:
-      LISP: ${{ matrix.lisp }}
       WITH_ALTIO: ${{ matrix.altio }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: Install roswell
         run: |
-          sudo apt-get install info install-info libturbojpeg0-dev
-      - name: Install CIM
+          curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh
+      - name: Install Ultralisp
         run: |
-          curl -L https://raw.githubusercontent.com/shamazmazum/cl-cirrus/github-actions/install-actions.sh | sh
-          cl -e '(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)'
+          ros -e '(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)'
       - name: Run tests
         run: |
-          cl -f $GITHUB_WORKSPACE/tests/travis.lisp
+          ros -l $GITHUB_WORKSPACE/tests/travis.lisp
