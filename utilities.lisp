@@ -12,6 +12,14 @@
 
 (in-package :imago)
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setq *parametric-type-symbol-predicates*
+        (list (lambda (s)
+                (let* ((name (symbol-name s))
+                       (len  (length name)))
+                  (and (char= #\< (elt name 0))
+                       (char= #\> (elt name (1- len)))))))))
+
 ;;; Binary streams
 
 (defun read-msb-integer (stream size)

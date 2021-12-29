@@ -22,6 +22,7 @@
                :cl-jpeg
                :alexandria
                :serapeum
+               :polymorphic-functions
                :array-operations)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))

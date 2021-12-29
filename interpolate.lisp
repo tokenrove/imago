@@ -44,13 +44,15 @@ to some interpolation METHOD. X and Y are single floats in the range
            (type single-float v1 v2 x))
   (+ v1 (* (- v2 v1) x)))
 
-(defun interpolate-pixel-linear (image x y constructor accessors)
-  (declare (type (single-float 0.0 1.0) x y)
-           (type function constructor)
-           (optimize (speed 3)))
-  (with-image-definition (image width height pixels)
-    (declare (type alex:positive-fixnum width height)
-             (type (simple-array * (* *)) pixels))
+(defpolymorph interpolate-pixel-linear ((pixels (array <t>))
+                                        (x (single-float 0f0 1f0))
+                                        (y (single-float 0f0 1f0))
+                                        (constructor function)
+                                        (accessors list))
+    <t>
+  (destructuring-bind (height width)
+      (array-dimensions pixels)
+    (declare (type alex:positive-fixnum width height))
     (multiple-value-bind (x rem-x) (floor (* x width))
       (multiple-value-bind (y rem-y) (floor (* y height))
         (let* ((x+1 (min (1- width)  (1+ x)))
@@ -75,14 +77,22 @@ to some interpolation METHOD. X and Y are single floats in the range
             (apply constructor
                    (mapcar #'interpolate accessors))))))))
 
-(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :bilinear)))
-  (interpolate-pixel-linear image x y #'make-gray
-                            (list #'gray-intensity #'gray-alpha)))
-
 (defmethod interpolate-pixel ((image rgb-image) x y (method (eql :bilinear)))
-  (interpolate-pixel-linear image x y #'make-color
-                            (list #'color-red #'color-green
-                                  #'color-blue #'color-alpha)))
+  (declare (optimize (speed 3))
+           (type (single-float 0f0 1f0) x y))
+  (let ((pixels (image-pixels image)))
+    (declare (type (simple-array rgb-pixel) pixels))
+    (interpolate-pixel-linear pixels x y #'make-color
+                              (list #'color-red #'color-green
+                                    #'color-blue #'color-alpha))))
+
+(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :bilinear)))
+  (declare (optimize (speed 3))
+           (type (single-float 0f0 1f0) x y))
+  (let ((pixels (image-pixels image)))
+    (declare (type (simple-array grayscale-pixel) pixels))
+    (interpolate-pixel-linear pixels x y #'make-gray
+                              (list #'gray-intensity #'gray-alpha))))
 
 ;;; Bicubic interpolation
 
@@ -93,13 +103,15 @@ to some interpolation METHOD. X and Y are single floats in the range
       (2  . -1) (2  . 0) (2  . 1) (2  . 2))
   :test #'equalp)
 
-(defun interpolate-pixel-cubic (image x y constructor accessors)
-  (declare (optimize (speed 3))
-           (type (single-float 0f0 1f0) x y)
-           (type function constructor))
-  (with-image-definition (image width height image-pixels)
-    (declare (type alex:positive-fixnum height width)
-             (type (simple-array * (* *)) image-pixels))
+(defpolymorph interpolate-pixel-cubic ((image-pixels (array <t>))
+                                       (x (single-float 0f0 1f0))
+                                       (y (single-float 0f0 1f0))
+                                       (constructor function)
+                                       (accessors list))
+    <t>
+  (destructuring-bind (height width)
+      (array-dimensions image-pixels)
+    (declare (type alex:positive-fixnum height width))
     (let ((x (- (* x width) 0.5f0))
           (y (- (* y height) 0.5f0)))
       (labels ((compute-neighborhood (real-y real-x neighborhood)
@@ -123,7 +135,6 @@ to some interpolation METHOD. X and Y are single floats in the range
                    (+ p1 (* 0.5f0 step3))))
                (bicubic (x y pixels accessor)
                  (declare (type single-float x y)
-                          (type (simple-array * (16)) pixels)
                           (type function accessor))
                  (macrolet ((px (n) `(float (the (unsigned-byte 8)
                                                  (funcall accessor (aref pixels ,n)))
@@ -136,7 +147,7 @@ to some interpolation METHOD. X and Y are single floats in the range
         (declare (inline compute-neighborhood cubic bicubic))
         (multiple-value-bind (real-x interp-x) (truncate x)
           (multiple-value-bind (real-y interp-y) (truncate y)
-            (let ((neighborhood (make-array 16 :element-type (array-element-type image-pixels))))
+            (let ((neighborhood (make-array 16 :element-type <t>)))
               (declare (dynamic-extent neighborhood))
               (compute-neighborhood real-y real-x neighborhood)
               (flet ((access (accessor)
@@ -146,10 +157,18 @@ to some interpolation METHOD. X and Y are single floats in the range
                 (apply constructor (mapcar #'access accessors))))))))))
 
 (defmethod interpolate-pixel ((image rgb-image) x y (method (eql :bicubic)))
-  (interpolate-pixel-cubic image x y #'make-color
-                           (list #'color-red #'color-green
-                                 #'color-blue #'color-alpha)))
+  (declare (optimize (speed 3))
+           (type (single-float 0f0 1f0) x y))
+  (let ((pixels (image-pixels image)))
+    (declare (type (simple-array rgb-pixel) pixels))
+    (interpolate-pixel-cubic pixels x y #'make-color
+                             (list #'color-red #'color-green
+                                   #'color-blue #'color-alpha))))
 
 (defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :bicubic)))
-  (interpolate-pixel-cubic image x y #'make-gray
-                           (list #'gray-intensity #'gray-alpha)))
+  (declare (optimize (speed 3))
+           (type (single-float 0f0 1f0) x y))
+  (let ((pixels (image-pixels image)))
+    (declare (type (simple-array grayscale-pixel) pixels))
+    (interpolate-pixel-cubic pixels x y #'make-gray
+                             (list #'gray-intensity #'gray-alpha))))
