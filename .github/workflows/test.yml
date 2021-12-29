@@ -22,6 +22,7 @@ jobs:
       - name: Install CIM
         run: |
           curl -L https://raw.githubusercontent.com/shamazmazum/cl-cirrus/github-actions/install-actions.sh | sh
+          cl -e '(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)'
       - name: Run tests
         run: |
           cl -f $GITHUB_WORKSPACE/tests/travis.lisp
