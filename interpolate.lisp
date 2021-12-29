@@ -107,7 +107,6 @@ to some interpolation METHOD. X and Y are single floats in the range
             (y (- (* y height) 0.5f0)))
         (declare (type (single-float -10f10 10f10) x y))
         (labels ((compute-neighborhood (real-y real-x neighborhood)
-                   (declare (inline clamp))
                    (dotimes (i (length +resize-offsets+))
                      (let* ((cell (aref +resize-offsets+ i))
                             (offset-y (car cell))
