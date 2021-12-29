@@ -13,12 +13,16 @@
 (in-package :imago)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (setq *parametric-type-symbol-predicates*
-        (list (lambda (s)
-                (let* ((name (symbol-name s))
-                       (len  (length name)))
-                  (and (char= #\< (elt name 0))
-                       (char= #\> (elt name (1- len)))))))))
+  (flet ((in-brackets-p (s)
+           (let* ((name (symbol-name s))
+                  (len  (length name)))
+             (and (char= #\< (elt name 0))
+                  (char= #\> (elt name (1- len)))))))
+    (when (notany
+           (lambda (pred)
+             (funcall pred '<type>))
+           *parametric-type-symbol-predicates*)
+      (push #'in-brackets-p *parametric-type-symbol-predicates*))))
 
 ;;; Binary streams
 
