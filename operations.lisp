@@ -12,9 +12,6 @@
 
 (in-package :imago)
 
-(defparameter *default-interpolation* :nearest-neighbor
-  "Default interpolation method. See RESIZE for details.")
-
 (defgeneric copy (dest src &key dest-x dest-y src-x src-y width height)
   (:documentation "Copies a rectangular region from image SRC to image DEST.
 Both images must be large enough to contain the specified region at
@@ -24,11 +21,6 @@ the given positions. Both images must be of same type."))
   (:documentation "Flips an image. AXIS may be either :HORIZONTAL or
 :VERTICAL. DEST must be either an image of same type and dimensions as
 IMAGE, or NIL. Returns the resulting image."))
-
-(defgeneric interpolate-pixel (image x y method)
-  (:documentation "Get pixel from the image at point (X, Y) according
-to some interpolation METHOD. X and Y are single floats in the range
-[0, 1]."))
 
 
 (defmethod copy ((dest (eql nil)) (src image)
@@ -139,70 +131,12 @@ OPERATION-ERROR is signalled."
                                (+ y y%))))
     dest))
 
-(defmethod interpolate-pixel ((image image) x y (method (eql :nearest-neighbor)))
-  (declare (type (single-float 0.0 1.0) x y)
-           (optimize (speed 3)))
-  (with-image-definition (image width height pixels)
-    (declare (type alex:positive-fixnum width height)
-             (type (simple-array * (* *)) pixels))
-    (let ((x% (floor (* x width)))
-          (y% (floor (* y height))))
-      (aref pixels y% x%))))
-
-(sera:-> linear-interpolation
-         (single-float single-float single-float)
-         (values single-float &optional))
-
-(defun linear-interpolation (v1 v2 x)
-  (declare (optimize (speed 3))
-           (type single-float v1 v2 x))
-  (+ v1 (* (- v2 v1) x)))
-
-(defun interpolate-pixel-linear (image x y constructor accessors)
-  (declare (type (single-float 0.0 1.0) x y)
-           (type function constructor)
-           (optimize (speed 3)))
-  (with-image-definition (image width height pixels)
-    (declare (type alex:positive-fixnum width height)
-             (type (simple-array * (* *)) pixels))
-    (multiple-value-bind (x rem-x) (floor (* x width))
-      (multiple-value-bind (y rem-y) (floor (* y height))
-        (let* ((x+1 (min (1- width)  (1+ x)))
-               (y+1 (min (1- height) (1+ y)))
-
-               (pixel-x0-y0 (aref pixels y   x))
-               (pixel-x1-y0 (aref pixels y   x+1))
-               (pixel-x0-y1 (aref pixels y+1 x))
-               (pixel-x1-y1 (aref pixels y+1 x+1)))
-          (flet ((interpolate (accessor)
-                   (declare (type (sera:-> ((unsigned-byte 32))
-                                           (values (unsigned-byte 8) &optional))
-                                  accessor))
-                   (let ((v1 (linear-interpolation
-                              (float (funcall accessor pixel-x0-y0))
-                              (float (funcall accessor pixel-x1-y0))
-                              rem-x))
-                         (v2 (linear-interpolation
-                              (float (funcall accessor pixel-x0-y1))
-                              (float (funcall accessor pixel-x1-y1))
-                              rem-x)))
-                     (floor (linear-interpolation v1 v2 rem-y)))))
-            (apply constructor
-                   (mapcar #'interpolate accessors))))))))
-
-(defmethod interpolate-pixel ((image grayscale-image) x y (method (eql :bilinear)))
-  (interpolate-pixel-linear image x y #'make-gray
-                            (list #'gray-intensity #'gray-alpha)))
-
-(defmethod interpolate-pixel ((image rgb-image) x y (method (eql :bilinear)))
-  (interpolate-pixel-linear image x y #'make-color
-                            (list #'color-red #'color-green #'color-blue #'color-alpha)))
-
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
   "Returns an newly created image corresponding to the
 IMAGE image, with given dimensions. Currently supported
-INTERPOLATION-METHODs are :NEAREST-NEIGHBOR and :BILINEAR."
+INTERPOLATION-METHODs are :NEAREST-NEIGHBOR, :BILINEAR,
+and :BICUBIC."
   (declare (type image image)
            (type alex:positive-fixnum new-width new-height))
   (let ((pixels (make-array (list new-height new-width)
@@ -218,7 +152,8 @@ INTERPOLATION-METHODs are :NEAREST-NEIGHBOR and :BILINEAR."
                                (/ x new-width%)
                                (/ y new-height%)
                                interpolation)))
-    (make-instance (class-of image) :pixels pixels)))
+    (make-instance (class-of image) :pixels pixels
+                                    :width new-width :height new-height)))
 
 (defun scale (image width-factor height-factor
               &key (interpolation *default-interpolation*))

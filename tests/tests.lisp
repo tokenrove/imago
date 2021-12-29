@@ -20,6 +20,10 @@
   (asdf:system-relative-pathname
    :imago/tests "tests/spheres-connected.png"))
 
+(defun resize-image-pathname (n)
+  (asdf:system-relative-pathname
+   :imago/tests (format nil "tests/test-resize~D.png" n)))
+
 (defun temporary-filename (format)
   (asdf:system-relative-pathname
    :imago/tests
@@ -119,6 +123,28 @@
           (list *rgb-image-pathname*
                 *grayscale-image-pathname*
                 *indexed-image-pathname*))))
+
+(test resize-modes
+  (flet ((verify (image1 image2)
+           (let* ((pixels1 (image-pixels image1))
+                  (pixels2 (image-pixels image2))
+                  (dims1 (array-dimensions pixels1))
+                  (dims2 (array-dimensions pixels2)))
+             (is (equal dims1 dims2))
+             (is (loop for y below (first dims1)
+                       always (loop for x below (second dims1)
+                                    always (= (aref pixels1 y x)
+                                              (aref pixels2 y x))))))))
+    (let ((image1 (read-image (resize-image-pathname 1))))
+      (let ((actual (resize image1 200 200 :interpolation :bicubic))
+            (image2 (read-image (resize-image-pathname 2))))
+        (verify actual image2))
+      (let ((actual (resize image1 200 200 :interpolation :nearest-neighbor))
+            (image3 (read-image (resize-image-pathname 3))))
+        (verify actual image3)
+        (let ((actual (resize image3 2000 2000 :interpolation :bicubic))
+              (image4 (read-image (resize-image-pathname 4))))
+          (verify actual image4))))))
 
 (test convolution
   (flet ((test-convolution (filename)
