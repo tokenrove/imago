@@ -143,17 +143,23 @@ and :BICUBIC."
                             :element-type (array-element-type
                                            (image-pixels image))))
         (new-width%  (float new-width))
-        (new-height% (float new-height)))
-    (declare (type (simple-array * (* *)) pixels))
+        (new-height% (float new-height))
+        (interpolator (interpolator image interpolation)))
+    (declare (type (simple-array * (* *)) pixels)
+             (type (sera:-> ((single-float 0f0 1f0)
+                             (single-float 0f0 1f0))
+                            (values t &optional))
+                   interpolator))
     (array-operations/utilities:nested-loop (y x)
         (array-dimensions pixels)
       (setf (aref pixels y x)
-            (interpolate-pixel image
-                               (/ x new-width%)
-                               (/ y new-height%)
-                               interpolation)))
-    (make-instance (class-of image) :pixels pixels
-                                    :width new-width :height new-height)))
+            (funcall interpolator
+                     (/ x new-width%)
+                     (/ y new-height%))))
+    (make-instance (class-of image)
+                   :pixels pixels
+                   :width  new-width
+                   :height new-height)))
 
 (defun scale (image width-factor height-factor
               &key (interpolation *default-interpolation*))

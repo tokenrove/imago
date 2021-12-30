@@ -14,12 +14,7 @@
 
 
 (defclass image ()
-  ((width  :type          alex:positive-fixnum
-           :documentation "Width of the image"
-           :accessor      image-width)
-   (height :type          alex:positive-fixnum
-           :documentation "Height of the image"
-           :accessor      image-height))
+  ()
   (:documentation "The protocol class for images."))
 
 (defgeneric image-pixel (image x y)
@@ -40,18 +35,6 @@ in the image."))
 (defmethod (setf image-pixel) (pixel (image image) x y)
   (setf (aref (image-pixels image) y x) pixel))
 
-(defmethod print-object ((object image) stream)
-  (print-unreadable-object (object stream :type t :identity t)
-    (format stream "(~Dx~D)" (image-width object) (image-height object))))
-
-
-;; Dirty hack: I need this method to run AFTER all other methods
-(defmethod initialize-instance :around ((image image) &rest initargs)
-  (declare (ignore initargs))
-  (call-next-method)
-  (let ((pixels (image-pixels image)))
-    (setf (image-height image) (array-dimension pixels 0)
-          (image-width  image) (array-dimension pixels 1))))
 
 (defmacro add-generic-initializer (image-type pixel-type init-color-form)
   `(defmethod initialize-instance :after ((image ,image-type) &rest initargs
@@ -173,3 +156,20 @@ the :WIDTH and :HEIGHT keyword parameters."))
 ;; Better leave this undefined
 #+nil
 (defmethod pixel-size ((image binary-image)) 1)
+
+;; Widht and height readers
+
+(sera:-> image-width  (image) (values alex:positive-fixnum &optional))
+(sera:-> image-height (image) (values alex:positive-fixnum &optional))
+
+(defun image-height (image)
+  (declare (type image image))
+  (array-dimension (image-pixels image) 0))
+
+(defun image-width (image)
+  (declare (type image image))
+  (array-dimension (image-pixels image) 1))
+
+(defmethod print-object ((object image) stream)
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(~Dx~D)" (image-width object) (image-height object))))
