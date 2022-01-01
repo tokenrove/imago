@@ -47,7 +47,7 @@
            #:convert-to-planar #:convert-to-binary ; Aka threshold
 
            #:copy
-           #:flip #:scale #:resize #:crop
+           #:flip #:scale #:resize #:crop #:rotate
            #:*default-interpolation*
 
            #:draw-point #:draw-line
