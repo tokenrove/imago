@@ -12,10 +12,10 @@
 
 (in-package :imago)
 
-;; TODO slots width and height seem superfluous?... We have array dimensions after all.
-
 (defun rotate (image degree &key (interpolation *default-interpolation*)
                               (background-color (make-default-background-color image)))
+  "Rotate an image by DEGREE degrees counterclockwise (negative DEGREE
+gives clockwise rotation)."
   (let ((degree (mod degree 360))
         (dimensions (array-dimensions (image-pixels image))))
     (destructuring-bind (new-height new-width)
@@ -37,7 +37,8 @@
            (src-dimensions (array-dimensions src))
            (dest-dimensions (rotate-dimensions src-dimensions (- degree)))
            (src-center (center src-dimensions))
-           (dest-center (center dest-dimensions)))
+           (dest-center (center dest-dimensions))
+           (interpolator (interpolator image interpolation)))
       (destructuring-bind ((src-height src-width)
                            (src-center-y src-center-x)
                            (dest-center-y dest-center-x))
@@ -60,15 +61,14 @@
                      ;; require passing the background color to
                      ;; INTERPOLATE-PIXEL though.
                      (if (and background-color
-                              (or (< src-x 0f0)
-                                  (< 1f0 src-x)
-                                  (< src-y 0f0)
-                                  (< 1f0 src-y)))
+                              (or (<  src-x 0f0)
+                                  (<= 1f0 src-x)
+                                  (<  src-y 0f0)
+                                  (<= 1f0 src-y)))
                          background-color
-                         (interpolate-pixel image
-                                            (alex:clamp src-x 0f0 1f0)
-                                            (alex:clamp src-y 0f0 1f0)
-                                            interpolation)))))
+                         (funcall interpolator
+                                  (alex:clamp src-x 0f0 1f0)
+                                  (alex:clamp src-y 0f0 1f0))))))
             #'operate))))))
 
 (defgeneric make-default-background-color (image)
