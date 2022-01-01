@@ -45,14 +45,7 @@ coordinates"))
            (type single-float v1 v2 x))
   (+ v1 (* (- v2 v1) x)))
 
-;; Correct return type in polymorphs. Now it's just FUNCTION, probably
-;; due to bug in polymorphic-functions.
-#+nil
-(sera:-> ((single-float 0f0 1f0)
-          (single-float 0f0 1f0))
-         (values <t> &optional))
-
-(defpolymorph linear-interpolator ((pixels (array <t>))
+(defpolymorph linear-interpolator ((pixels array)
                                    (constructor function)
                                    (accessors list))
     function
@@ -113,7 +106,7 @@ coordinates"))
       (2  . -1) (2  . 0) (2  . 1) (2  . 2))
   :test #'equalp)
 
-(defpolymorph cubic-interpolator ((image-pixels (array <t>))
+(defpolymorph cubic-interpolator ((image-pixels array)
                                   (constructor function)
                                   (accessors list))
     function
@@ -157,7 +150,7 @@ coordinates"))
           (declare (inline compute-neighborhood cubic bicubic))
           (multiple-value-bind (real-x interp-x) (truncate x)
             (multiple-value-bind (real-y interp-y) (truncate y)
-              (let ((neighborhood (make-array 16 :element-type <t>)))
+              (let ((neighborhood (make-array 16 :element-type (array-element-type image-pixels))))
                 (declare (dynamic-extent neighborhood))
                 (compute-neighborhood real-y real-x neighborhood)
                 (flet ((access (accessor)
