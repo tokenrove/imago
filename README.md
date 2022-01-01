@@ -27,7 +27,7 @@ indexed images, use old png loader instead.
 
 ## Usage examples
 
-All usage examples are taken from
+Most of the examples are taken from
 [here](http://matthieu.villeneuve.free.fr/dev/imago/examples.html).
 
 ### Resizing an image
@@ -37,6 +37,14 @@ All usage examples are taken from
 | Original | Processed |
 | -------- | --------- |
 | ![Original](docs/country.png) | ![Resized](docs/country-resize.png) |
+
+### Rotating an image
+
+`(rotate *image* 45)`
+
+| Original | Processed |
+| -------- | --------- |
+| ![Original](docs/lena.png) | ![Resized](docs/lena-rot.png) |
 
 
 ### Applying an emboss effect
