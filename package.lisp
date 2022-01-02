@@ -13,7 +13,7 @@
 (in-package #:cl-user)
 
 (defpackage :imago
-  (:use #:common-lisp #:polymorphic-functions)
+  (:use #:common-lisp)
   (:local-nicknames (:alex :alexandria)
                     (:sera :serapeum))
   (:export #:image
