@@ -45,7 +45,7 @@ gives clockwise rotation)."
                            (src-center-y src-center-x)
                            (dest-center-y dest-center-x))
           (list src-dimensions src-center dest-center)
-        (declare (type alex:positive-fixnum src-height src-width)
+        (declare (type image-dimension src-height src-width)
                  (type single-float
                        src-center-y src-center-x
                        dest-center-y dest-center-x))
@@ -54,7 +54,7 @@ gives clockwise rotation)."
                (sin (sin radians)))
           (flet ((operate (dest-y dest-x)
                    (declare (optimize (speed 3))
-                            (type alex:non-negative-fixnum dest-y dest-x))
+                            (type image-index dest-y dest-x))
                    (let* ((dest-y (float dest-y 0f0))
                           (dest-x (float dest-x 0f0))
                           (src-x (/ (+ (* sin (- dest-y dest-center-y))

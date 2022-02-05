@@ -12,6 +12,15 @@
 
 (in-package :imago)
 
+;; Types
+(deftype image-index     ()
+  "Type for an index into image."
+  '(unsigned-byte 32))
+
+(deftype image-dimension ()
+  "Type for image dimensions."
+  '(and image-index (not (eql 0))))
+
 ;;; Binary streams
 
 (defun read-msb-integer (stream size)

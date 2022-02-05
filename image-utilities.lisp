@@ -73,12 +73,12 @@ generalized variable corresponding to the pixel color."
            (,height (image-height ,image))
            (,pixels (image-pixels ,image)))
        (declare (ignorable ,pixels)
-                (type fixnum ,width ,height))
+                (type image-dimension ,width ,height))
        (symbol-macrolet ((,color (aref ,pixels ,y ,x)))
          (dotimes (,y ,height)
-           (declare (type fixnum ,y))
+           (declare (type image-index ,y))
            (dotimes (,x ,width)
-             (declare (type fixnum ,x))
+             (declare (type image-index ,x))
              ,@body))))))
 
 (defmacro do-region-pixels ((image color x y

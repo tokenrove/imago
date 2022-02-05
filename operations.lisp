@@ -138,7 +138,7 @@ IMAGE image, with given dimensions. Currently supported
 INTERPOLATION-METHODs are :NEAREST-NEIGHBOR, :BILINEAR,
 and :BICUBIC."
   (declare (type image image)
-           (type alex:positive-fixnum new-width new-height))
+           (type image-dimension new-width new-height))
   (let ((pixels (make-array (list new-height new-width)
                             :element-type (array-element-type
                                            (image-pixels image))))

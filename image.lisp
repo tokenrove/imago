@@ -159,8 +159,8 @@ the :WIDTH and :HEIGHT keyword parameters."))
 
 ;; Widht and height readers
 
-(sera:-> image-width  (image) (values alex:positive-fixnum &optional))
-(sera:-> image-height (image) (values alex:positive-fixnum &optional))
+(sera:-> image-width  (image) (values image-dimension &optional))
+(sera:-> image-height (image) (values image-dimension &optional))
 
 (defun image-height (image)
   (declare (type image image))
