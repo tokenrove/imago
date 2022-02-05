@@ -53,37 +53,6 @@ least-significant bit order."
   (loop repeat count
         do (read-byte stream)))
 
-(defun write-integer-as-text (stream number &key (base 10))
-  "Writes the text representation of a number to a binary output stream."
-  (let ((digits '()))
-    (loop with n = number
-          while (> n 0)
-          do (multiple-value-bind (quotient remainder)
-                 (floor n base)
-               (push remainder digits)
-               (setf n quotient)))
-    (loop for digit in digits
-          do (write-byte (if (< digit 10)
-                             (+ (char-code #\0) digit)
-                             (+ (char-code #\A) (- digit 10)))
-                         stream))))
-
-(defun read-integer-as-text (stream &key (base 10))
-  "Reads the text representation of a number from a binary output stream."
-  (loop with number = 0
-        as byte = (read-byte stream nil 0)
-        as digit = (cond ((null byte) nil)
-                         ((<= (char-code #\0) byte (char-code #\9))
-                          (- byte (char-code #\0)))
-                         ((<= (char-code #\A)
-                              byte
-                              (+ (char-code #\A) (- base 11)))
-                          (+ (- byte (char-code #\A)) 10))
-                         (t nil))
-        until (null digit)
-        do (setf number (+ (* number base) digit))
-        finally (return number)))
-
 ;;; Character streams
 
 (defun skip-line (stream)
