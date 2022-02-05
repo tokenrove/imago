@@ -68,7 +68,7 @@ corresponding to IMAGE, then evaluates the body."
   "Iterates through all pixels of an image. For each pixel,
 X and Y are bound to the pixel coordinates, and COLOR is a
 generalized variable corresponding to the pixel color."
-  (with-gensyms (width height pixels)
+  (alex:with-gensyms (width height pixels)
     `(let ((,width  (image-width  ,image))
            (,height (image-height ,image))
            (,pixels (image-pixels ,image)))
@@ -87,8 +87,8 @@ generalized variable corresponding to the pixel color."
   "Iterates through all pixels of a rectangular region in an image.
 For each pixel, X and Y are bound to the pixel coordinates, and COLOR is a
 generalized variable corresponding to the pixel color."
-  (with-gensyms (image-width pixels x1 y1 width height
-                 index line-jump xrel yrel)
+  (alex:with-gensyms (image-width pixels x1 y1 width height
+                                  index line-jump xrel yrel)
     `(let* ((,image-width (image-width ,image))
             (,pixels (image-pixels ,image))
             (,x1 ,region-x)
@@ -114,8 +114,8 @@ generalized variable corresponding to the pixel color."
 corresponding to the X1, Y1, X2 and Y2 parameters. For each pixel,
 X and Y are bound to the pixel coordinates, and COLOR is a
 generalized variable corresponding to the pixel color."
-  (with-gensyms (width pixels dx dy adx ady index count
-                 x-inc y-inc index-y-inc errmax errinc err)
+  (alex:with-gensyms (width pixels dx dy adx ady index count
+                            x-inc y-inc index-y-inc errmax errinc err)
     `(let* ((,width (image-width ,image))
             (,pixels (image-pixels ,image))
             (,x ,x1)

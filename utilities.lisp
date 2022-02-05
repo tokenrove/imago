@@ -109,14 +109,6 @@ least-significant bit order."
            (optimize (speed 3)))
   (max (min x max) min))
 
-(defmacro with-gensyms (vars &body body)
-  "Bind variables to gensyms and execute the BODY forms in an
-implicit PROGN."
-  `(let ,(mapcar (lambda (var)
-                   `(,var (gensym)))
-                 vars)
-    ,@body))
-
 (defmacro read-array-element (array index)
   `(prog1
      (aref ,array ,index)
