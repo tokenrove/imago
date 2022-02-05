@@ -32,14 +32,6 @@ considered neighbors if Manhattan distance between them is 1")
   "Neighborhood pattern for Chebyshev distance. Two pixels are
 considered neighbors if Chebyshev distance between them is 1")
 
-(sera:-> clamp (fixnum fixnum fixnum) (values fixnum &optional))
-(declaim (inline clamp))
-
-(defun clamp (x min max)
-  (declare (type fixnum x min max)
-           (optimize (speed 3)))
-  (max (min x max) min))
-
 (sera:-> add-indices (list list list) (values list &optional))
 (declaim (inline add-indices))
 

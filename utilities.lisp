@@ -84,6 +84,7 @@ least-significant bit order."
 
 ;;; Miscellaneous
 
+(declaim (inline square))
 (defun square (x)
   (* x x))
 
@@ -100,11 +101,13 @@ least-significant bit order."
                    best-score score)
           finally (return (values best-element best-index best-score)))))
 
-(declaim (inline limit-value))
-(defun limit-value (value min max)
-  (cond ((< value min) min)
-        ((> value max) max)
-        (t value)))
+
+(sera:-> clamp (fixnum fixnum fixnum) (values fixnum &optional))
+(declaim (inline clamp))
+(defun clamp (x min max)
+  (declare (type fixnum x min max)
+           (optimize (speed 3)))
+  (max (min x max) min))
 
 (defmacro with-gensyms (vars &body body)
   "Bind variables to gensyms and execute the BODY forms in an
