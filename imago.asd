@@ -22,7 +22,8 @@
                :cl-jpeg
                :alexandria
                :serapeum
-               :array-operations)
+               :array-operations
+               :flexi-streams)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))

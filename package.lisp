@@ -15,7 +15,8 @@
 (defpackage :imago
   (:use #:common-lisp)
   (:local-nicknames (:alex :alexandria)
-                    (:sera :serapeum))
+                    (:sera :serapeum)
+                    (:flex :flexi-streams))
   (:export #:image
            #:image-width #:image-height
            #:image-plane-count #:image-colormap
@@ -24,7 +25,8 @@
            #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
 
            #:imago-condition #:imago-error
-           #:unknown-format #:decode-error #:not-implemented #:operation-error
+           #:unknown-format #:decode-error #:encode-error
+           #:not-implemented #:operation-error
 
            #:with-image-definition
            #:do-image-pixels #:do-region-pixels #:do-line-pixels
@@ -67,7 +69,7 @@
            ;; Export write-jpg-stream for jupyter
            #:read-jpg #:write-jpg #:write-jpg-stream
            #:read-png #:write-png
-           #:read-pnm #:write-pnm
+           #:read-pnm #:write-pnm #:read-pnm-from-stream #:write-pnm-to-stream
            #:read-tga #:write-tga
            #:read-pcx #:write-pcx
 

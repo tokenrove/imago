@@ -67,20 +67,11 @@ least-significant bit order."
 (defun skip-line (stream)
   (loop while (char/= (read-char stream) #\newline)))
 
-(defun skip-whitespace-and-comments (stream &optional (comment-start #\#))
+(defun skip-comments (stream &optional (comment-start #\#))
   (loop for char = (peek-char nil stream)
-        while (member char '(#\space #\tab #\newline #\#) :test #'char=)
-        do (read-char stream)
-           (when (char= char comment-start)
-             (skip-line stream))))
-
-(defun read-number (stream)
-  (loop with number = 0
-        for charcode = (char-code (peek-char nil stream))
-        while (<= (char-code #\0) charcode (char-code #\9))
-        do (read-char stream)
-           (setf number (+ (* number 10) (- charcode (char-code #\0))))
-        finally (return number)))
+        while (char= char comment-start) do
+       (read-char stream)
+       (skip-line stream)))
 
 ;;; Miscellaneous
 

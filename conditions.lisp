@@ -36,7 +36,6 @@ with unknown format")
   ()
   (:documentation "Signaled when decoding process has errored"))
 
-#+nil
 (define-condition encode-error (imago-error simple-condition)
   ()
   (:documentation "Signaled when encoding process has errored"))
