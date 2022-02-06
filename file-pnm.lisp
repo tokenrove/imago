@@ -16,29 +16,43 @@
 ;; Reading
 (defun magic=>image-type+format (magic)
   (case magic
+    (1 (values 'binary-image    :ascii))
     (2 (values 'grayscale-image :ascii))
-    (3 (values 'rgb-image :ascii))
+    (3 (values 'rgb-image       :ascii))
     (5 (values 'grayscale-image :binary))
-    (6 (values 'rgb-image :binary))
-    (t (error 'decode-error
+    (6 (values 'rgb-image       :binary))
+    (t (error  'decode-error
               :format-control   "Unknown magic number: ~d"
               :format-arguments (list magic)))))
 
 (defgeneric read-pnm-pixel (image format stream))
 
-(defmethod read-pnm-pixel ((image grayscale-image) (format (eql :ascii)) stream)
+(defmethod read-pnm-pixel ((image binary-image)
+                           (format (eql :ascii))
+                           stream)
+  (- 1 (read stream)))
+
+(defmethod read-pnm-pixel ((image grayscale-image)
+                           (format (eql :ascii))
+                           stream)
   (make-gray (read stream)))
 
-(defmethod read-pnm-pixel ((image rgb-image) (format (eql :ascii)) stream)
+(defmethod read-pnm-pixel ((image rgb-image)
+                           (format (eql :ascii))
+                           stream)
   (let* ((r (read stream))
          (g (read stream))
          (b (read stream)))
     (make-color r g b)))
 
-(defmethod read-pnm-pixel ((image grayscale-image) (format (eql :binary)) stream)
+(defmethod read-pnm-pixel ((image grayscale-image)
+                           (format (eql :binary))
+                           stream)
   (make-gray (read-byte stream)))
 
-(defmethod read-pnm-pixel ((image rgb-image) (format (eql :binary)) stream)
+(defmethod read-pnm-pixel ((image rgb-image)
+                           (format (eql :binary))
+                           stream)
   (let* ((r (read-byte stream))
          (g (read-byte stream))
          (b (read-byte stream)))
@@ -92,6 +106,9 @@ a newly created image correponding to those data."
 (defun image-type+format=>magic (image format)
   (let ((type (type-of image)))
     (cond
+      ((and (eq type   'binary-image)
+            (eq format :ascii))
+       1)
       ((and (eq type   'grayscale-image)
             (eq format :ascii))
        2)
@@ -150,6 +167,12 @@ or :ASCII."
   (format stream "~d~%"
           (gray-intensity pixel)))
 
+(defmethod pnm-write-pixel ((image binary-image)
+                            (format (eql :ascii))
+                            stream pixel)
+  (format stream "~d~%"
+          (- 1 pixel)))
+
 (defmethod pnm-write-pixel ((image rgb-image)
                             (format (eql :binary))
                             stream pixel)
@@ -175,7 +198,7 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
     (write-pnm-to-stream image stream output-format))
   image)
 
-(register-image-io-functions '("pnm" "ppm" "pgm")
+(register-image-io-functions '("pnm" "ppm" "pgm" "pbm")
                              :reader #'read-pnm
                              :writer #'(lambda (image filespec)
                                          ;; TODO: need parameter here
