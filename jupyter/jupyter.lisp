@@ -13,7 +13,7 @@
   (jpeg
    (usb8-array-to-base64-string
     (with-output-to-sequence (stream)
-      (write-jpg-stream image stream)))))
+      (write-jpg-to-stream image stream)))))
 
 (defmethod show-image ((image binary-image))
   (show-image (convert-to-grayscale image)))

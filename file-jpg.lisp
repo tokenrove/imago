@@ -68,7 +68,9 @@ dimensional array"))
           (aref array (+ idx% 2))
           (color-red pixel))))
 
-(defun write-jpg-stream (image stream &key (quality 64))
+(defun write-jpg-to-stream (image stream &key (quality 64))
+  "Write jpeg image IMAGE to an octet stream STREAM. QUALITY is an
+integer from 1 to 64 where 64 is default and the best quality."
   (declare (type (or rgb-image grayscale-image) image)
            (type stream stream)
            (type (integer 1 64) quality))
@@ -97,9 +99,8 @@ where 64 is default and the best quality."
   (with-open-file (stream filespec
                           :direction         :output
                           :element-type      '(unsigned-byte 8)
-                          :if-does-not-exist :create
-                          :if-exists         :supersede)
-    (write-jpg-stream image stream :quality quality)))
+                          :if-does-not-exist :create)
+    (write-jpg-to-stream image stream :quality quality)))
 
 (register-image-io-functions '("jpg" "jpeg")
                              :reader #'read-jpg

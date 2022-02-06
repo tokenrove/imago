@@ -66,8 +66,8 @@
            #:register-image-reader #:register-image-writer
            #:register-image-io-functions
 
-           ;; Export write-jpg-stream for jupyter
-           #:read-jpg #:write-jpg #:write-jpg-stream
+           ;; TODO: stream versions for all types.
+           #:read-jpg #:write-jpg #:write-jpg-to-stream
            #:read-png #:write-png
            #:read-pnm #:write-pnm #:read-pnm-from-stream #:write-pnm-to-stream
            #:read-tga #:write-tga
