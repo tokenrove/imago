@@ -12,6 +12,10 @@
   (asdf:system-relative-pathname
    :imago/tests "tests/parrot-indexed.png"))
 
+(defparameter *bitmap-image-pathname*
+  (asdf:system-relative-pathname
+   :imago/tests "tests/bitmap-noise.pnm"))
+
 (defparameter *spheres-image-pathname*
   (asdf:system-relative-pathname
    :imago/tests "tests/spheres.png"))
@@ -48,34 +52,45 @@
 (def-suite binary-images :description "Algorithms for binary images")
 
 (in-suite read-write)
-(defun test-read-write (image format)
+(defun test-read-write (image format lossless-p)
   (let ((tmp-name (temporary-filename format))
-        (width (image-width image))
-        (height (image-height image)))
+        (width  (image-width image))
+        (height (image-height image))
+        (pixels (image-pixels image)))
     (finishes (write-image image tmp-name))
     (let ((image (read-image tmp-name)))
       (is (= width  (image-width image)))
-      (is (= height (image-height image))))
+      (is (= height (image-height image)))
+      (when lossless-p
+        (is-true (equalp (image-pixels image) pixels))))
     (delete-file tmp-name)))
 
 (test read-write-rgb
   (let ((image (read-image *rgb-image-pathname*)))
-    (mapc (lambda (format) (test-read-write image format))
+    (mapc (alexandria:curry #'test-read-write image)
           ;; PCX is broken
-          '("png" "jpg" "pnm" "tga"))))
+          '("png" "jpg" "pnm" "tga")
+          '(t nil t t))))
 
 (test read-write-grayscale
   (let ((image (read-image *grayscale-image-pathname*)))
-    (mapc (lambda (format) (test-read-write image format))
+    (mapc (alexandria:curry #'test-read-write image)
           ;; PCX is broken, TGA is not supported
-          '("png" "jpg" "pnm"))))
+          '("png" "jpg" "pnm")
+          '(t nil t))))
+
+(test read-write-bitmap
+  (let ((image (read-image *bitmap-image-pathname*)))
+    (mapc (alexandria:curry #'test-read-write image)
+          '("pnm") '(t))))
 
 ;; Broken
 #+nil
 (test read-write-indexed
   (let ((image (read-image *indexed-image-pathname*)))
-    (mapc (lambda (format) (test-read-write image format))
-          '("pnm" "pcx" "jpg" "tga" "png"))))
+    (mapc (alexandria:curry #'test-read-write image)
+          '("pnm" "pcx" "jpg" "tga" "png")
+          '(t t nil t t))))
 
 
 (in-suite conversions)
