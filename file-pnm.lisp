@@ -194,6 +194,7 @@ OUTPUT-FORMAT can be either :ASCII or :BINARY."
   (with-open-file (stream filespec
                           :direction         :output
                           :if-does-not-exist :create
+                          :if-exists         :supersede
                           :element-type      '(unsigned-byte 8))
     (write-pnm-to-stream image stream output-format))
   image)

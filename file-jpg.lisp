@@ -98,8 +98,9 @@ where 64 is default and the best quality."
   (declare (type (or string pathname) filespec))
   (with-open-file (stream filespec
                           :direction         :output
-                          :element-type      '(unsigned-byte 8)
-                          :if-does-not-exist :create)
+                          :if-does-not-exist :create
+                          :if-exists         :supersede
+                          :element-type      '(unsigned-byte 8))
     (write-jpg-to-stream image stream :quality quality)))
 
 (register-image-io-functions '("jpg" "jpeg")
