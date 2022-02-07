@@ -12,9 +12,13 @@
   (asdf:system-relative-pathname
    :imago/tests "tests/parrot-indexed.png"))
 
-(defparameter *bitmap-image-pathname*
+(defparameter *binary-bitmap-image-pathname*
   (asdf:system-relative-pathname
-   :imago/tests "tests/bitmap-noise.pnm"))
+   :imago/tests "tests/batou-bitmap.pnm"))
+
+(defparameter *ascii-bitmap-image-pathname*
+  (asdf:system-relative-pathname
+   :imago/tests "tests/batou-bitmap-ascii.pnm"))
 
 (defparameter *spheres-image-pathname*
   (asdf:system-relative-pathname
@@ -80,9 +84,15 @@
           '(t nil t))))
 
 (test read-write-bitmap
-  (let ((image (read-image *bitmap-image-pathname*)))
+  (let ((image (read-image *ascii-bitmap-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
           '("pnm") '(t))))
+
+(test binary-vs-ascii-bitmaps
+  (let ((image-binary (read-image *binary-bitmap-image-pathname*))
+        (image-ascii  (read-image *ascii-bitmap-image-pathname*)))
+    (is-true (equalp (image-pixels image-binary)
+                     (image-pixels image-ascii)))))
 
 ;; Broken
 #+nil

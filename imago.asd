@@ -12,7 +12,17 @@
 
 (in-package :asdf-user)
 
-(defsystem imago
+(defsystem :imago/bit-io
+  :name :imago/bit-io
+  :description "Bit streams for imago library"
+  :depends-on (:trivial-gray-streams
+               :alexandria
+               :serapeum)
+  :pathname "bit-io/"
+  :components ((:file "package")
+               (:file "bit-io" :depends-on ("package"))))
+
+(defsystem :imago
   :name "imago"
   :description "Image manipulation library"
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
@@ -23,6 +33,7 @@
                :alexandria
                :serapeum
                :array-operations
+               :imago/bit-io
                :flexi-streams)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))

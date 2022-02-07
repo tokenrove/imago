@@ -19,40 +19,53 @@
     (1 (values 'binary-image    :ascii))
     (2 (values 'grayscale-image :ascii))
     (3 (values 'rgb-image       :ascii))
+    (4 (values 'binary-image    :binary))
     (5 (values 'grayscale-image :binary))
     (6 (values 'rgb-image       :binary))
     (t (error  'decode-error
               :format-control   "Unknown magic number: ~d"
               :format-arguments (list magic)))))
 
-(defgeneric read-pnm-pixel (image format stream))
+(defgeneric read-pnm-pixel (image format stream new-row-p))
 
 (defmethod read-pnm-pixel ((image binary-image)
                            (format (eql :ascii))
-                           stream)
+                           stream new-row-p)
+  (declare (ignore new-row-p))
   (- 1 (read stream)))
 
 (defmethod read-pnm-pixel ((image grayscale-image)
                            (format (eql :ascii))
-                           stream)
+                           stream new-row-p)
+  (declare (ignore new-row-p))
   (make-gray (read stream)))
 
 (defmethod read-pnm-pixel ((image rgb-image)
                            (format (eql :ascii))
-                           stream)
+                           stream new-row-p)
+  (declare (ignore new-row-p))
   (let* ((r (read stream))
          (g (read stream))
          (b (read stream)))
     (make-color r g b)))
 
+(defmethod read-pnm-pixel ((image binary-image)
+                           (format (eql :binary))
+                           stream new-row-p)
+  (when new-row-p
+    (bit:skip-to-byte-alignment stream))
+  (- 1 (bit:read-bit stream)))
+
 (defmethod read-pnm-pixel ((image grayscale-image)
                            (format (eql :binary))
-                           stream)
+                           stream new-row-p)
+  (declare (ignore new-row-p))
   (make-gray (read-byte stream)))
 
 (defmethod read-pnm-pixel ((image rgb-image)
                            (format (eql :binary))
-                           stream)
+                           stream new-row-p)
+  (declare (ignore new-row-p))
   (let* ((r (read-byte stream))
          (g (read-byte stream))
          (b (read-byte stream)))
@@ -67,6 +80,15 @@
      (read-number%)
      (read-number%)
      (if max-value-p (read-number%) 1))))
+
+(defun pnm-transform-input-stream (stream format)
+  (cond
+    ((eq format :binary)
+     (setf (flex:flexi-stream-element-type stream)
+           '(unsigned-byte 8))
+     (make-instance 'bit:bit-input-stream
+                    :stream stream))
+    (t stream)))
 
 (defun read-pnm-from-stream (stream)
   "Read PNM image from an octet stream STREAM."
@@ -83,14 +105,14 @@
       (multiple-value-bind (width height max-value)
           (read-pnm-info stream (not (eq image-type 'binary-image)))
         (declare (ignore max-value))
-        (when (eq format :binary)
-          (setf (flex:flexi-stream-element-type stream)
-                '(unsigned-byte 8)))
-        (let ((image (make-instance image-type
+        (let ((stream (pnm-transform-input-stream stream format))
+              (image (make-instance image-type
                                     :width  width
                                     :height height)))
           (do-image-pixels (image color x y)
-            (setf color (read-pnm-pixel image format stream)))
+            (setf color
+                  (read-pnm-pixel image format
+                                  stream (zerop x))))
           image)))))
 
 (defun read-pnm (filespec)

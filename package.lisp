@@ -9,14 +9,12 @@
 ;;; (http://opensource.franz.com/preamble.html),
 ;;; known as the LLGPL.
 
-
-(in-package #:cl-user)
-
 (defpackage :imago
   (:use #:common-lisp)
   (:local-nicknames (:alex :alexandria)
                     (:sera :serapeum)
-                    (:flex :flexi-streams))
+                    (:flex :flexi-streams)
+                    (:bit  :imago-bit-io))
   (:export #:image
            #:image-width #:image-height
            #:image-plane-count #:image-colormap
