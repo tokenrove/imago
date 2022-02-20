@@ -79,5 +79,5 @@
            #:erode
            #:dilate
            #:manhattan-distance-transform
-           #:*cross-pattern*
-           #:*square-pattern*))
+           #:+cross-pattern+
+           #:+square-pattern+))

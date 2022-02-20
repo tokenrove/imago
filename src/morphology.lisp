@@ -12,15 +12,17 @@
 
 (in-package :imago)
 
-(defparameter *cross-pattern*
+(alex:define-constant +cross-pattern+
   '((-1  0)
     ( 0 -1)
     ( 0  1)
     ( 1  0))
-  "Neighborhood pattern for Manhattan distance. Two pixels are
-considered neighbors if Manhattan distance between them is 1")
+  :test #'equalp
+  :documentation "Neighborhood pattern for Manhattan distance. Two
+pixels are considered neighbors if Manhattan distance between them is
+1")
 
-(defparameter *square-pattern*
+(alex:define-constant +square-pattern+
   '((-1 -1)
     (-1  0)
     (-1  1)
@@ -29,8 +31,10 @@ considered neighbors if Manhattan distance between them is 1")
     ( 1 -1)
     ( 1  0)
     ( 1  1))
-  "Neighborhood pattern for Chebyshev distance. Two pixels are
-considered neighbors if Chebyshev distance between them is 1")
+  :test #'equalp
+  :documentation "Neighborhood pattern for Chebyshev distance. Two
+pixels are considered neighbors if Chebyshev distance between them is
+1")
 
 (sera:-> add-indices (list list list) (values list &optional))
 (declaim (inline add-indices))
@@ -44,7 +48,7 @@ considered neighbors if Chebyshev distance between them is 1")
    x y dimensions))
 
 
-(defun label-components (image &key (connectivity *cross-pattern*))
+(defun label-components (image &key (connectivity +cross-pattern+))
   "Perform connected components labeling on binary image. Pixels with
 value zero are considered background. Each cluster gets a unique
 integer label. The result is returned in an array of fixnums with the
