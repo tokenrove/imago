@@ -200,3 +200,27 @@ quicklisp).
 | Original | Processed |
 | -------- | --------- |
 | ![Original](tests/spheres.png) | ![Processed](docs/spheres-colored.png) |
+
+
+### Distance transform
+
+Calculating squared Euclidean distance transform (also Manhattan distance
+transform is available). This example requires `array-operations`.
+
+~~~~{.lisp}
+(defun edt-image (image)
+  (declare (type imago:binary-image image))
+  (let* ((dt (imago:distance-transform image :type :edt))
+         (max (reduce #'max (aops:flatten dt)))
+         (pixels (make-array (array-dimensions dt) :element-type 'imago:grayscale-pixel)))
+    (map-into (aops:flatten pixels)
+              (lambda (x) (imago:make-gray (floor (* 255 x) max)))
+              (aops:flatten dt))
+    (make-instance 'imago:grayscale-image :pixels pixels)))
+
+(edt-image original-image)
+~~~~
+
+| Original | Processed |
+| -------- | --------- |
+| ![Original](docs/edt-orig.png) | ![Processed](docs/edt.png) |
