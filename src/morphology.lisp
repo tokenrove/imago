@@ -167,24 +167,73 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                  (aref array i))))
     array))
 
+(sera:-> edt-pass
+         ((array fixnum (*)))
+         (values (array fixnum (*)) &optional))
+(defun edt-pass (array)
+  (declare (type (array fixnum (*)) array))
+  (let ((length (length array))
+        (envelope-minima (list 0))
+        envelope-crossing)
+    (loop for i fixnum from 1 below length do
+         (loop
+            for current-minima fixnum =
+              (car envelope-minima)
+            for crossing single-float =
+              (/ (- (+ (expt i 2)
+                       (aref array i))
+                    (+ (expt current-minima 2)
+                       (aref array current-minima)))
+                 (* 2.0 (- i current-minima)))
+            while (and envelope-crossing
+                       (<= crossing (car envelope-crossing)))
+            do
+              (pop envelope-crossing)
+              (pop envelope-minima)
+            finally
+              (push i envelope-minima)
+              (push crossing envelope-crossing)))
+    (loop
+       with envelope-minima   = (reverse envelope-minima)
+       with envelope-crossing = (reverse envelope-crossing)
+       for i fixnum below length do
+         (loop while (and envelope-crossing
+                          (< (car envelope-crossing) i))
+            do
+              (pop envelope-crossing)
+              (pop envelope-minima))
+         (setf (aref array i)
+               (+ (expt (- i (car envelope-minima)) 2)
+                  (aref array (car envelope-minima))))))
+  array)
+
+
 (declaim (inline distance-transform-pass))
 (defun distance-transform-pass (type)
-  (declare (type (member :mdt) type))
+  (declare (type (member :mdt :edt) type))
   (ecase type
-    (:mdt #'mdt-pass)))
+    (:mdt #'mdt-pass)
+    (:edt #'edt-pass)))
 
-(defun distance-transform (image &key (type :mdt))
-  "Perform distance transform on a binary image. TYPE can only be :MDT
-which corresponds to Manhattan distance transform."
+(sera:-> distance-transform
+         (image &key (:type symbol))
+         (values (simple-array fixnum (* *)) &optional))
+(defun distance-transform (image &key (type :edt))
+  "Perform distance transform on a binary image. Every 1 is replaced
+with 0 and every 0 is replaced with distance to the closest 1.
+
+TYPE can be either :MDT (Manhattan distance transform) or :EDT
+(squared Euclidean distance)."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
     (let ((distances (make-array (list height width)
                                  :element-type 'fixnum))
           (dt-pass (distance-transform-pass type)))
       ;; Initialize the array with distances
-      (map-into (aops:flatten distances)
-                (lambda (x) (* (- 1 x) most-positive-fixnum))
-                (aops:flatten pixels))
+      (let ((max-dim (expt (max width height) 2)))
+        (map-into (aops:flatten distances)
+                  (lambda (x) (* (- 1 x) max-dim))
+                  (aops:flatten pixels)))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
