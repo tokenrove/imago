@@ -35,6 +35,7 @@
                :array-operations
                :imago/bit-io
                :flexi-streams)
+  :pathname "src/"
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))
