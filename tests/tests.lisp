@@ -232,12 +232,24 @@
     ;; Count number of spheres
     (is (= (reduce #'max (aops:flatten components)) 1))))
 
-(test mdt-with-one-feature-pixel
+(test mdt-with-two-feature-pixels
   (let ((image (make-instance 'binary-image
-                              :width 5
-                              :height 5)))
-    (setf (image-pixel image 0 0) 1)
-    (let ((distance (manhattan-distance-transform image)))
+                              :width 20
+                              :height 20)))
+    (setf (image-pixel image  0  0) 1
+          (image-pixel image 19 19) 1)
+    (let ((distance (distance-transform image :type :mdt))
+          indices)
       (array-operations/utilities:nested-loop (i j)
           (array-dimensions distance)
-        (is (= (aref distance i j) (+ i j)))))))
+        (push (cons i j) indices))
+      (is-true
+       (every
+        (lambda (index)
+          (destructuring-bind (i . j)
+              index
+            (= (aref distance i j)
+               (min (+ i j)
+                    (+ (abs (- 19 i))
+                       (abs (- 19 j)))))))
+        indices)))))

@@ -151,10 +151,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 ;; ====================
 ;; Distance transform
 ;; ====================
-(sera:-> do-mdt-pass
+(sera:-> mdt-pass
          ((array fixnum (*)))
          (values (array fixnum (*)) &optional))
-(defun do-mdt-pass (array)
+(defun mdt-pass (array)
   (declare (type (array fixnum (*)) array))
   (let ((length (length array)))
     (loop for i from 1 below length do
@@ -167,12 +167,20 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                  (aref array i))))
     array))
 
-(defun manhattan-distance-transform (image)
-  "Perform Manhattan distance transform on a binary image."
+(declaim (inline distance-transform-pass))
+(defun distance-transform-pass (type)
+  (declare (type (member :mdt) type))
+  (ecase type
+    (:mdt #'mdt-pass)))
+
+(defun distance-transform (image &key (type :mdt))
+  "Perform distance transform on a binary image. TYPE can only be :MDT
+which corresponds to Manhattan distance transform."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
     (let ((distances (make-array (list height width)
-                                 :element-type 'fixnum)))
+                                 :element-type 'fixnum))
+          (dt-pass (distance-transform-pass type)))
       ;; Initialize the array with distances
       (map-into (aops:flatten distances)
                 (lambda (x) (* (- 1 x) most-positive-fixnum))
@@ -180,15 +188,15 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
-        (do-mdt-pass (make-array width
-                                 :element-type 'fixnum
-                                 :displaced-to distances
-                                 :displaced-index-offset (* row width))))
+        (funcall dt-pass (make-array width
+                                     :element-type 'fixnum
+                                     :displaced-to distances
+                                     :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
       (let ((permutation (aops:permute '(1 0) distances)))
         (dotimes (column width)
-          (do-mdt-pass (make-array height
-                                   :element-type 'fixnum
-                                   :displaced-to permutation
-                                   :displaced-index-offset (* column height))))
+          (funcall dt-pass (make-array height
+                                       :element-type 'fixnum
+                                       :displaced-to permutation
+                                       :displaced-index-offset (* column height))))
         (aops:permute '(1 0) permutation)))))

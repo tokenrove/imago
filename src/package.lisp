@@ -78,6 +78,6 @@
            #:component-boxes
            #:erode
            #:dilate
-           #:manhattan-distance-transform
+           #:distance-transform
            #:+cross-pattern+
            #:+square-pattern+))
