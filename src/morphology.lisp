@@ -12,6 +12,9 @@
 
 (in-package :imago)
 
+;; ====================
+;; Component labeling
+;; ====================
 (alex:define-constant +cross-pattern+
   '((-1  0)
     ( 0 -1)
@@ -113,51 +116,44 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
           for box = (gethash component boxes)
           while box collect box)))
 
+;; ====================
+;; Erode & Dilate
+;; ====================
+
 ;; Stolen from convolve.lisp ;)
-(defun erode (image)
-  "Erode binary image with 3x3 square structuring component."
-  (declare (type binary-image image))
-  (with-image-definition (image width height pixels)
-    (declare (ignore pixels))
-    (let ((image2 (make-instance 'binary-image
-                                 :width  width
-                                 :height height)))
-      (do-image-pixels (image2 pixel2 x y)
-        (setf pixel2
-              (loop for dy from -1 to 1
-                    as y2 = (+ y dy)
-                    when (<= 0 y2 (1- height))
-                      minimize
-                      (loop for dx from -1 to 1
-                            as x2 = (+ x dx)
-                            when (<= 0 x2 (1- width))
-                              minimize (image-pixel image x2 y2)))))
-      image2)))
+(macrolet ((def-morphological-op (name documentation operation)
+             `(defun ,name (image)
+                ,documentation
+                (declare (type binary-image image))
+                (with-image-definition (image width height pixels)
+                  (declare (ignore pixels))
+                  (let ((image2 (make-instance 'binary-image
+                                               :width  width
+                                               :height height)))
+                    (do-image-pixels (image2 pixel2 x y)
+                      (setf pixel2
+                            (loop for dy from -1 to 1
+                               as y2 = (+ y dy)
+                               when (<= 0 y2 (1- height))
+                               ,operation
+                                 (loop for dx from -1 to 1
+                                    as x2 = (+ x dx)
+                                    when (<= 0 x2 (1- width))
+                                    ,operation (image-pixel image x2 y2)))))
+                    image2)))))
+  (def-morphological-op erode
+      "Erode binary image with 3x3 square structuring component."
+    minimize)
+  (def-morphological-op dilate
+      "Dilate binary image with 3x3 square structuring component."
+    maximize))
 
-(defun dilate (image)
-  "Dilate binary image with 3x3 square structuring component."
-  (declare (type binary-image image))
-  (with-image-definition (image width height pixels)
-    (declare (ignore pixels))
-    (let ((image2 (make-instance 'binary-image
-                                 :width  width
-                                 :height height)))
-      (do-image-pixels (image2 pixel2 x y)
-        (setf pixel2
-              (loop for dy from -1 to 1
-                    as y2 = (+ y dy)
-                    when (<= 0 y2 (1- height))
-                      maximize
-                      (loop for dx from -1 to 1
-                            as x2 = (+ x dx)
-                            when (<= 0 x2 (1- width))
-                              maximize (image-pixel image x2 y2)))))
-      image2)))
-
+;; ====================
+;; Distance transform
+;; ====================
 (sera:-> do-mdt-pass
          ((array fixnum (*)))
          (values (array fixnum (*)) &optional))
-
 (defun do-mdt-pass (array)
   (declare (type (array fixnum (*)) array))
   (let ((length (length array)))

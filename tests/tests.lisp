@@ -217,19 +217,19 @@
 (test label-components
   (let* ((image (read-image *spheres-image-pathname*))
          (components (label-components (convert-to-binary image 10))))
-    ;; Count number os spheres
+    ;; Count number of spheres
     (is (= (reduce #'max (aops:flatten components)) 10))))
 
 (test label-components+erosion
   (let* ((image (read-image *spheres-connected-image-pathname*))
          (components (label-components (erode (convert-to-binary image 10)))))
-    ;; Count number os spheres
+    ;; Count number of spheres
     (is (= (reduce #'max (aops:flatten components)) 10))))
 
 (test label-components+dilation
   (let* ((image (read-image *spheres-connected-image-pathname*))
          (components (label-components (dilate (convert-to-binary image 10)))))
-    ;; Count number os spheres
+    ;; Count number of spheres
     (is (= (reduce #'max (aops:flatten components)) 1))))
 
 (test mdt-with-one-feature-pixel
