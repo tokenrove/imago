@@ -226,14 +226,12 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
 (squared Euclidean distance)."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
-    (let ((distances (make-array (list height width)
-                                 :element-type 'fixnum))
-          (dt-pass (distance-transform-pass type)))
-      ;; Initialize the array with distances
-      (let ((max-dim (expt (max width height) 2)))
-        (map-into (aops:flatten distances)
-                  (lambda (x) (* (- 1 x) max-dim))
-                  (aops:flatten pixels)))
+    (let ((dt-pass (distance-transform-pass type))
+          ;; Initialize the array with distances
+          (distances
+           (let ((max-dim (expt (max width height) 2)))
+             (aops:vectorize* 'fixnum (pixels)
+               (* (- 1 pixels) max-dim)))))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)

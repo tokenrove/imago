@@ -184,34 +184,31 @@
 
 (in-suite contrast-enhancement)
 (test enhance-contrast-of-grayscale-image
-  (let ((grays #2A((52 55 61 59 79 61 76 61)  ;; 8-bit grayscale image
-                   (62 59 55 104 94 85 59 71)
-                   (63 65 66 113 144 104 63 72)
-                   (64 70 70 126 154 109 71 69)
-                   (67 73 68 106 122 88 68 68)
-                   (68 79 60 70 77 66 58 75)
-                   (69 85 64 58 55 61 65 83)
-                   (70 87 69 68 65 73 78 90)))
-        (enhanced-grays #2A((0 12 53 32 190 53 174 53)
-                            (57 32 12 227 219 202 32 154)
-                            (65 85 93 239 251 227 65 158)
-                            (73 146 146 247 255 235 154 130)
-                            (97 166 117 231 243 210 117 117)
-                            (117 190 36 146 178 93 20 170)
-                            (130 202 73 20 12 53 85 194)
-                            (146 206 130 117 85 166 182 215)))
-        (image (make-instance 'grayscale-image :width 8 :height 8)))
-
-    (map-into (aops:flatten (image-pixels image))
-              #'make-gray
-              (aops:flatten grays))
+  (let* ((grays #2A((52 55 61 59 79 61 76 61)  ;; 8-bit grayscale image
+                    (62 59 55 104 94 85 59 71)
+                    (63 65 66 113 144 104 63 72)
+                    (64 70 70 126 154 109 71 69)
+                    (67 73 68 106 122 88 68 68)
+                    (68 79 60 70 77 66 58 75)
+                    (69 85 64 58 55 61 65 83)
+                    (70 87 69 68 65 73 78 90)))
+         (enhanced-grays #2A((0 12 53 32 190 53 174 53)
+                             (57 32 12 227 219 202 32 154)
+                             (65 85 93 239 251 227 65 158)
+                             (73 146 146 247 255 235 154 130)
+                             (97 166 117 231 243 210 117 117)
+                             (117 190 36 146 178 93 20 170)
+                             (130 202 73 20 12 53 85 194)
+                             (146 206 130 117 85 166 182 215)))
+         (image (make-instance 'grayscale-image
+                              :pixels (aops:vectorize* 'grayscale-pixel
+                                          (grays) (make-gray grays))))
+         (enhanced-result (image-pixels (enhance-contrast image))))
     (is-true
      (every #'identity
-            (map 'vector
-                 (lambda (pixel intensity)
-                   (= (gray-intensity pixel) intensity))
-                 (aops:flatten (image-pixels (enhance-contrast image)))
-                 (aops:flatten enhanced-grays))))))
+            (aops:flatten
+             (aops:vectorize (enhanced-grays enhanced-result)
+               (= (gray-intensity enhanced-result) enhanced-grays)))))))
 
 (in-suite binary-images)
 (test label-components
