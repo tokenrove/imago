@@ -152,10 +152,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 ;; Distance transform
 ;; ====================
 (sera:-> mdt-pass
-         ((array fixnum (*)))
-         (values (array fixnum (*)) &optional))
+         ((array single-float (*)))
+         (values (array single-float (*)) &optional))
 (defun mdt-pass (array)
-  (declare (type (array fixnum (*)) array))
+  (declare (type (array single-float (*)) array))
   (let ((length (length array)))
     (loop for i from 1 below length do
       (setf (aref array i)
@@ -168,10 +168,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
     array))
 
 (sera:-> edt-pass
-         ((array fixnum (*)))
-         (values (array fixnum (*)) &optional))
+         ((array single-float (*)))
+         (values (array single-float (*)) &optional))
 (defun edt-pass (array)
-  (declare (type (array fixnum (*)) array))
+  (declare (type (array single-float (*)) array))
   (let ((length (length array))
         (envelope-minima (list 0))
         envelope-crossing)
@@ -217,33 +217,33 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 
 (sera:-> distance-transform
          (image &key (:type symbol))
-         (values (simple-array fixnum (* *)) &optional))
+         (values (simple-array single-float (* *)) &optional))
 (defun distance-transform (image &key (type :edt))
   "Perform distance transform on a binary image. Every 1 is replaced
-with 0 and every 0 is replaced with distance to the closest 1.
+with 0f0 and every 0 is replaced with distance to the closest 1.
 
 TYPE can be either :MDT (Manhattan distance transform) or :EDT
-(squared Euclidean distance)."
+(squared Euclidean distance transform)."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
     (let ((dt-pass (distance-transform-pass type))
           ;; Initialize the array with distances
           (distances
            (let ((max-dim (expt (max width height) 2)))
-             (aops:vectorize* 'fixnum (pixels)
-               (* (- 1 pixels) max-dim)))))
+             (aops:vectorize* 'single-float (pixels)
+               (* (- 1.0 pixels) max-dim)))))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
         (funcall dt-pass (make-array width
-                                     :element-type 'fixnum
+                                     :element-type 'single-float
                                      :displaced-to distances
                                      :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
       (let ((permutation (aops:permute '(1 0) distances)))
         (dotimes (column width)
           (funcall dt-pass (make-array height
-                                       :element-type 'fixnum
+                                       :element-type 'single-float
                                        :displaced-to permutation
                                        :displaced-index-offset (* column height))))
         (aops:permute '(1 0) permutation)))))
