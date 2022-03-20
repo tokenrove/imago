@@ -151,10 +151,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 ;; ====================
 ;; Distance transform
 ;; ====================
-(sera:-> mdt-pass
+(sera:-> mdt-pass!
          ((array single-float (*)))
          (values (array single-float (*)) &optional))
-(defun mdt-pass (array)
+(defun mdt-pass! (array)
   (declare (type (array single-float (*)) array))
   (let ((length (length array)))
     (loop for i from 1 below length do
@@ -167,10 +167,10 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                  (aref array i))))
     array))
 
-(sera:-> edt-pass
+(sera:-> edt-pass!
          ((array single-float (*)))
          (values (array single-float (*)) &optional))
-(defun edt-pass (array)
+(defun edt-pass! (array)
   (declare (type (array single-float (*)) array))
   (let ((length (length array))
         (envelope-minima (list 0))
@@ -194,6 +194,7 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
               (push i envelope-minima)
               (push crossing envelope-crossing)))
     (loop
+       with dist              = (copy-seq array)
        with envelope-minima   = (reverse envelope-minima)
        with envelope-crossing = (reverse envelope-crossing)
        for i fixnum below length do
@@ -204,7 +205,7 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
               (pop envelope-minima))
          (setf (aref array i)
                (+ (expt (- i (car envelope-minima)) 2)
-                  (aref array (car envelope-minima))))))
+                  (aref dist (car envelope-minima))))))
   array)
 
 
@@ -212,8 +213,8 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 (defun distance-transform-pass (type)
   (declare (type (member :mdt :edt) type))
   (ecase type
-    (:mdt #'mdt-pass)
-    (:edt #'edt-pass)))
+    (:mdt #'mdt-pass!)
+    (:edt #'edt-pass!)))
 
 (sera:-> distance-transform
          (image &key (:type symbol))
