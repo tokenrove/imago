@@ -2,27 +2,27 @@
 
 (defun jpg-image-class (colorspace)
   (case colorspace
-    (:gray 'grayscale-image)
+    (:gray 'imago:grayscale-image)
     ((or :cmyk :ycck)
      (error 'decode-error
             :format-control "Unsupported colorspace: ~a"
             :format-arguments (list colorspace)))
-    (t 'rgb-image)))
+    (t 'imago:rgb-image)))
 
 (defgeneric jpg-pixel-format (image)
   (:documentation "Choose pixel format from reading from and writing
 to jpeg images"))
 
-(defmethod jpg-pixel-format ((image image))
+(defmethod jpg-pixel-format ((image imago:image))
   (declare (ignore image))
-  (error 'decode-error
+  (error 'imago:decode-error
          :format-control "Unsupported image format"))
 
-(defmethod jpg-pixel-format ((image rgb-image))
+(defmethod jpg-pixel-format ((image imago:rgb-image))
   (declare (ignore image))
   :bgr)
 
-(defmethod jpg-pixel-format ((image grayscale-image))
+(defmethod jpg-pixel-format ((image imago:grayscale-image))
   (declare (ignore image))
   :gray)
 
@@ -58,11 +58,11 @@ to jpeg images"))
 in the range [0-100], 100 means the best quality. SUBSAMP is
 subsampling mode and defaults to :S-444 for RGB images and :S-GRAY for
 grayscale images."
-  (declare (type (or rgb-image grayscale-image) image)
+  (declare (type (or imago:rgb-image imago:grayscale-image) image)
            (type (integer 1 100) quality))
   (let* ((ncomp (1- (imago::pixel-size image)))
-         (width (image-width image))
-         (height (image-height image))
+         (width (imago:image-width image))
+         (height (imago:image-height image))
          (length (* ncomp width height))
          (data (make-array length :element-type '(unsigned-byte 8))))
     (dotimes (idx (* height width))
@@ -84,7 +84,7 @@ the range [0-100], 100 means the best quality. SUBSAMP is subsampling
 mode and defaults to :S-444 for RGB images and :S-GRAY for grayscale
 images."
   (declare (type (or string pathname) filespec)
-           (type (or rgb-image grayscale-image) image)
+           (type (or imago:rgb-image imago:grayscale-image) image)
            (type (integer 1 100) quality))
   (let ((compressed (apply #'write-jpg-to-octets image
                            :quality quality
@@ -96,6 +96,7 @@ images."
       (write-sequence compressed output)))
   t)
 
-(register-image-io-functions '("jpg" "jpeg")
-                             :reader #'read-jpg
-                             :writer #'write-jpg)
+(imago:register-image-io-functions
+ '("jpg" "jpeg")
+ :reader #'read-jpg
+ :writer #'write-jpg)

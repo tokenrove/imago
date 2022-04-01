@@ -1,7 +1,5 @@
 (defpackage imago-jpeg-turbo
-  (:use #:cl
-        #:imago
-        #:jpeg-turbo)
+  (:use #:cl #:jpeg-turbo)
   (:export #:read-jpg
            #:write-jpg
 
