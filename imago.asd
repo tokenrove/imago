@@ -96,13 +96,13 @@
 
 (defsystem :imago/jupyter
   :name :imago/jupyter
-  :version "0.1"
+  :version "0.2"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago
+               :imago/jpeg-turbo
                :common-lisp-jupyter
-               :cl-base64
-               :flexi-streams)
+               :cl-base64)
   :pathname "jupyter/"
   :components ((:file "package")
                (:file "jupyter" :depends-on ("package"))))

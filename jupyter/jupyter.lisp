@@ -12,8 +12,7 @@
 (defmethod show-image ((image image))
   (jpeg
    (usb8-array-to-base64-string
-    (with-output-to-sequence (stream)
-      (write-jpg-to-stream image stream)))))
+    (imago-jt:write-jpg-to-octets image))))
 
 (defmethod show-image ((image binary-image))
   (show-image (convert-to-grayscale image)))
