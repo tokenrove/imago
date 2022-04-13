@@ -4,7 +4,7 @@
   (case colorspace
     (:gray 'imago:grayscale-image)
     ((or :cmyk :ycck)
-     (error 'decode-error
+     (error 'imago:decode-error
             :format-control "Unsupported colorspace: ~a"
             :format-arguments (list colorspace)))
     (t 'imago:rgb-image)))
