@@ -17,6 +17,8 @@
 
 (deftype grayscale-pixel () '(unsigned-byte 16))
 
+(deftype binary-pixel () 'bit)
+
 (deftype indexed-pixel () '(unsigned-byte 8))
 
 (deftype planar-pixel (&optional (plane-count '*))
@@ -24,8 +26,9 @@
 
 (declaim (inline make-gray gray-intensity gray-alpha invert-gray))
 
-(defun make-gray (intensity &optional (alpha #xff))
-  (the grayscale-pixel (logior (ash alpha 8) intensity)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-gray (intensity &optional (alpha #xff))
+    (the grayscale-pixel (logior (ash alpha 8) intensity))))
 
 (defun gray-intensity (gray)
   (the (unsigned-byte 8) (ldb (byte 8 0) gray)))
@@ -40,12 +43,13 @@
 (declaim (inline make-color color-red color-green color-blue color-alpha
                  color-rgb color-argb color-intensity invert-color))
 
-(defun make-color (r g b &optional (alpha #xff))
-  (declare (type (unsigned-byte 8) r)
-           (type (unsigned-byte 8) g)
-           (type (unsigned-byte 8) b)
-           (type (unsigned-byte 8) alpha))
-  (the rgb-pixel (logior (ash alpha 24) (ash r 16) (ash g 8) b)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun make-color (r g b &optional (alpha #xff))
+    (declare (type (unsigned-byte 8) r)
+             (type (unsigned-byte 8) g)
+             (type (unsigned-byte 8) b)
+             (type (unsigned-byte 8) alpha))
+    (the rgb-pixel (logior (ash alpha 24) (ash r 16) (ash g 8) b))))
 
 (defun color-red (color)
   (declare (type rgb-pixel color))
@@ -109,11 +113,11 @@
       (setf (aref colormap i) (make-color i i i)))
     colormap))
 
-(defvar +white+ (make-color #xff #xff #xff))
-(defvar +black+ (make-color #x00 #x00 #x00))
-(defvar +red+ (make-color #xff #x00 #x00))
-(defvar +green+ (make-color #x00 #xff #x00))
-(defvar +blue+ (make-color #x00 #x00 #xff))
-(defvar +cyan+ (make-color #x00 #xff #xff))
-(defvar +magenta+ (make-color #xff #x00 #xff))
-(defvar +yellow+ (make-color #xff #xff #x00))
+(defconstant +white+ (make-color #xff #xff #xff))
+(defconstant +black+ (make-color #x00 #x00 #x00))
+(defconstant +red+ (make-color #xff #x00 #x00))
+(defconstant +green+ (make-color #x00 #xff #x00))
+(defconstant +blue+ (make-color #x00 #x00 #xff))
+(defconstant +cyan+ (make-color #x00 #xff #xff))
+(defconstant +magenta+ (make-color #xff #x00 #xff))
+(defconstant +yellow+ (make-color #xff #xff #x00))
