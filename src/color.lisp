@@ -121,3 +121,10 @@
 (defconstant +cyan+ (make-color #x00 #xff #xff))
 (defconstant +magenta+ (make-color #xff #x00 #xff))
 (defconstant +yellow+ (make-color #xff #xff #x00))
+
+(defconstant +default-rgb+  (make-color 0 0 0)
+  "Default RGB color for a newly created RGB image")
+(defconstant +default-gray+ (make-gray  0)
+  "Default grayscale color for a newly created grayscale image")
+(defconstant +default-bit+  0
+  "Default color for a newly created binary image")

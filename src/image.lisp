@@ -57,7 +57,7 @@ in the image."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(add-generic-initializer rgb-image rgb-pixel (make-color 0 0 0))
+(add-generic-initializer rgb-image rgb-pixel +default-rgb+)
 (defmethod pixel-size ((image rgb-image)) 4)
 
 
@@ -68,7 +68,7 @@ parameters."))
 provided to MAKE-INSTANCE, through the :WIDTH and :HEIGHT keyword
 parameters."))
 
-(add-generic-initializer grayscale-image grayscale-pixel (make-gray 0))
+(add-generic-initializer grayscale-image grayscale-pixel +default-gray+)
 (defmethod pixel-size ((image grayscale-image)) 2)
 
 
@@ -152,7 +152,7 @@ plane count must be provided to MAKE-INSTANCE, through the :WIDTH,
 or 1. Image dimensions must be provided to MAKE-INSTANCE, through
 the :WIDTH and :HEIGHT keyword parameters."))
 
-(add-generic-initializer binary-image bit 0)
+(add-generic-initializer binary-image bit +default-bit+)
 ;; Better leave this undefined
 #+nil
 (defmethod pixel-size ((image binary-image)) 1)
@@ -173,3 +173,39 @@ the :WIDTH and :HEIGHT keyword parameters."))
 (defmethod print-object ((object image) stream)
   (print-unreadable-object (object stream :type t :identity t)
     (format stream "(~Dx~D)" (image-width object) (image-height object))))
+
+;; Image constructors
+(macrolet
+    ((def-img-constructor (color initial)
+       (let* ((constructor             (intern (format nil "MAKE-~a-IMAGE" color)))
+              (constructor-from-pixels (intern (format nil "MAKE-~a-IMAGE-FROM-PIXELS" color)))
+              (image                   (find-symbol (format nil "~a-IMAGE" color)))
+              (pixel                   (find-symbol (format nil "~a-PIXEL" color)))
+              (cons-docstring          (concatenate
+                                        'string
+                                        "Create " (symbol-name image)
+                                        " with dimensions WxH and fill it with INITIAL-COLOR "
+                                        "or a suitable default if INITIAL-COLOR is not specified."))
+              (cons/fp-docstring        (concatenate
+                                         'string
+                                         "Create " (symbol-name image)
+                                         " from two dimensional simple array of pixels of type "
+                                         (symbol-name pixel))))
+         (assert (and pixel image))
+         `(progn
+            (sera:-> ,constructor
+                     (unsigned-byte unsigned-byte &optional ,pixel)
+                     (values ,image &optional))
+            (defun ,constructor (w h &optional (initial-color ,initial))
+              ,cons-docstring
+              (make-instance ',image :width w :height h :initial-color initial-color))
+
+            (sera:-> ,constructor-from-pixels
+                     ((simple-array ,pixel (* *)))
+                     (values ,image &optional))
+            (defun ,constructor-from-pixels (pixels)
+              ,cons/fp-docstring
+              (make-instance ',image :pixels pixels))))))
+  (def-img-constructor grayscale +default-gray+)
+  (def-img-constructor rgb       +default-rgb+)
+  (def-img-constructor binary    +default-bit+))

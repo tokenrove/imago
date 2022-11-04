@@ -21,6 +21,9 @@
            #:image-pixels #:image-pixel
            #:rgb-image #:indexed-image #:grayscale-image #:planar-image #:binary-image
            #:rgb-pixel #:indexed-pixel #:grayscale-pixel #:planar-pixel
+           #:make-rgb-image #:make-rgb-image-from-pixels
+           #:make-grayscale-image #:make-grayscale-image-from-pixels
+           #:make-binary-image #:make-binary-image-from-pixels
 
            #:imago-condition #:imago-error
            #:unknown-format #:decode-error #:encode-error
