@@ -25,6 +25,28 @@ loading `imago/pngload` system. Use `imago-pngload:read-pngload` (or just
 converts indexed color images to RGB (or ARGB) images. If you want to work with
 indexed images, use old png loader instead.
 
+## Creating an image
+
+To create an image look at the documentation for image classes (like
+`imago:rgb-image` or `imago:grayscale-image`). You need to make an instance of
+one of those classes by passing `:w`, `:h` and optionally `:initial-color`
+keyword arguments to `make-instance`. Alternatively, you can use
+`make-XXX-image` and `make-XXX-image-from-pixels` functions:
+
+~~~~{.lisp}
+;; Create 100x100 px black grayscale image
+(imago:make-grayscale-image 100 100)
+
+;; Create 400x100 px red RGB image
+(imago:make-rgb-image 400 100 (imago:make-color 255 0 0))
+
+;; Create an image from an array of pixels
+(imago:make-rgb-image-from-pixels
+ (make-array '(100 100)
+             :element-type 'imago:rgb-pixel
+             :initial-element (imago:make-color 0 255 255)))
+~~~~
+
 ## Usage examples
 
 Most of the examples are taken from
@@ -224,3 +246,10 @@ transform is available). This example requires `array-operations`.
 | Original | Processed |
 | -------- | --------- |
 | ![Original](docs/edt-orig.png) | ![Processed](docs/edt.png) |
+
+## Intergation with common-lisp-jupyter
+
+You can view imago images in Jupyter by installing `imago/jupyter`
+system. Then call `imago-jupyter:show-image` function to show an image.
+
+![Jupyter example](docs/jupyter.png)
