@@ -40,6 +40,9 @@ keyword arguments to `make-instance`. Alternatively, you can use
 ;; Create 400x100 px red RGB image
 (imago:make-rgb-image 400 100 (imago:make-color 255 0 0))
 
+;; Create 400x100 px half-transparent red RGB image
+(imago:make-rgb-image 400 100 (imago:make-color 255 0 0 127))
+
 ;; Create an image from an array of pixels
 (imago:make-rgb-image-from-pixels
  (make-array '(100 100)
