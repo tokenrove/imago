@@ -262,3 +262,52 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
                                        :displaced-to permutation
                                        :displaced-index-offset (* column height))))
         (aops:permute '(1 0) permutation)))))
+
+;; =========
+;; Thinning
+;; =========
+(sera:-> thinning-pass (binary-image boolean)
+         (values binary-image &optional))
+(defun thinning-pass (image odd-iteration-p)
+  (declare (optimize (speed 3)))
+  (with-image-definition (image width height pixels)
+    (declare (type (simple-array bit (* *)) pixels))
+    (let ((copy (alex:copy-array pixels)))
+      (declare (type (simple-array bit (* *)) copy))
+      (do-image-pixels (image pixel x y)
+        (unless (zerop (aref pixels y x))
+          (let* ((p1 (aref pixels (mod (+ y -1) height) (mod (+ x -1) width)))
+                 (p2 (aref pixels (mod (+ y -1) height) (mod (+ x  0) width)))
+                 (p3 (aref pixels (mod (+ y -1) height) (mod (+ x +1) width)))
+                 (p4 (aref pixels (mod (+ y  0) height) (mod (+ x +1) width)))
+                 (p5 (aref pixels (mod (+ y +1) height) (mod (+ x +1) width)))
+                 (p6 (aref pixels (mod (+ y +1) height) (mod (+ x  0) width)))
+                 (p7 (aref pixels (mod (+ y +1) height) (mod (+ x -1) width)))
+                 (p8 (aref pixels (mod (+ y  0) height) (mod (+ x -1) width)))
+
+                 (c (+ (logand (- 1 p2) (logior p3 p4))
+                       (logand (- 1 p4) (logior p5 p6))
+                       (logand (- 1 p6) (logior p7 p8))
+                       (logand (- 1 p8) (logior p1 p2))))
+                 (n1 (+ (logior p1 p2) (logior p3 p4)
+                        (logior p5 p6) (logior p7 p8)))
+                 (n2 (+ (logior p2 p3) (logior p4 p5)
+                        (logior p6 p7) (logior p8 p1)))
+                 (n (min n1 n2))
+                 (o (if odd-iteration-p
+                        (logand p4 (logior (- 1 p5) p3 p2))
+                        (logand p8 (logior (- 1 p1) p7 p6)))))
+            (when (and (zerop o) (= c 1) (<= 2 n 3))
+              (setf (aref copy y x) 0)))))
+      (make-binary-image-from-pixels copy))))
+
+(sera:-> thin (binary-image) (values binary-image &optional))
+(defun thin (image)
+  "Perform thinning (extracting topological skeleton) of binary image."
+  (loop with current = image
+        for iteration fixnum from 1 by 1
+        for next = (thinning-pass current (oddp iteration))
+        until (equalp (image-pixels current)
+                      (image-pixels next))
+        do (setq current next)
+        finally (return current)))

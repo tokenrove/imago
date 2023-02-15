@@ -80,6 +80,7 @@
            #:label-components
            #:component-boxes
            #:erode #:dilate #:*structuring-element*
+           #:thin
            #:distance-transform
            #:+cross-pattern+
            #:+square-pattern+))
