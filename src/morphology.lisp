@@ -39,6 +39,14 @@ pixels are considered neighbors if Manhattan distance between them is
 pixels are considered neighbors if Chebyshev distance between them is
 1")
 
+(defparameter *structuring-element*
+  (make-array '(3 3)
+              :element-type 'bit
+              :initial-contents '((1 1 1)
+                                  (1 1 1)
+                                  (1 1 1)))
+  "Default structuring element for erosion and dilation")
+
 (sera:-> add-indices (list list list) (values list &optional))
 (declaim (inline add-indices))
 
@@ -119,34 +127,40 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 ;; ====================
 ;; Erode & Dilate
 ;; ====================
-
-;; Stolen from convolve.lisp ;)
-(macrolet ((def-morphological-op (name documentation operation)
-             `(defun ,name (image)
-                ,documentation
-                (declare (type binary-image image))
-                (with-image-definition (image width height pixels)
-                  (declare (ignore pixels))
-                  (let ((image2 (make-instance 'binary-image
-                                               :width  width
-                                               :height height)))
-                    (do-image-pixels (image2 pixel2 x y)
-                      (setf pixel2
-                            (loop for dy from -1 to 1
-                               as y2 = (+ y dy)
-                               when (<= 0 y2 (1- height))
-                               ,operation
-                                 (loop for dx from -1 to 1
-                                    as x2 = (+ x dx)
-                                    when (<= 0 x2 (1- width))
-                                    ,operation (image-pixel image x2 y2)))))
-                    image2)))))
-  (def-morphological-op erode
-      "Erode binary image with 3x3 square structuring component."
-    minimize)
-  (def-morphological-op dilate
-      "Dilate binary image with 3x3 square structuring component."
-    maximize))
+(macrolet ((def-morphological-op (name operation documentation)
+             `(progn
+                (sera:-> ,name (binary-image &optional (simple-array bit (* *)))
+                         (values binary-image &optional))
+                (defun ,name (image &optional (structuring-element *structuring-element*))
+                  ,documentation
+                  (declare (optimize (speed 3)))
+                  (let* ((width  (image-width  image))
+                         (height (image-height image))
+                         (result (make-binary-image width height))
+                         (image-pixels  (image-pixels image))
+                         (result-pixels (image-pixels result)))
+                    (declare (type alex:positive-fixnum width height)
+                             (type (simple-array bit (* *)) image-pixels result-pixels))
+                    (destructuring-bind (se-height/2 se-width/2)
+                        (mapcar (the function (alex:rcurry #'floor 2))
+                                (array-dimensions structuring-element))
+                      (declare (type alex:positive-fixnum se-height/2 se-width/2))
+                      (aops:each-index! result-pixels
+                          (i j)
+                        (aops:reduce-index #',operation (k l)
+                          (* (aref structuring-element k l)
+                             (aref image-pixels
+                                   (mod (+ i height se-height/2 (- k)) height)
+                                   (mod (+ j width  se-width/2  (- l)) width))))))
+                    result)))))
+  (def-morphological-op erode min
+    "Erode binary image. STRUCTURING-ELEMENT is an optional 2D simple
+array of bits which serves as a structuring element and defaults to
+*STRUCTURING-ELEMENT*.")
+  (def-morphological-op dilate max
+    "Dilate binary image. STRUCTURING-ELEMENT is an optional 2D simple
+array of bits which serves as a structuring element and defaults to
+*STRUCTURING-ELEMENT*."))
 
 ;; ====================
 ;; Distance transform

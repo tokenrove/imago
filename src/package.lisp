@@ -79,8 +79,7 @@
            ;; Algorithms for binary images
            #:label-components
            #:component-boxes
-           #:erode
-           #:dilate
+           #:erode #:dilate #:*structuring-element*
            #:distance-transform
            #:+cross-pattern+
            #:+square-pattern+))
