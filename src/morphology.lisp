@@ -93,7 +93,7 @@ same dimenions as image."
                       ;; Already has a label - skip
                       0))))
             (loop with delta fixnum = (push-in-queue y x)
-                  while (not (null queue)) do
+                  until (null queue) do
                     (let ((index (pop queue)))
                       (map 'nil
                            (lambda (shift)
