@@ -150,8 +150,8 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                         (aops:reduce-index #',operation (k l)
                           (* (aref structuring-element k l)
                              (aref image-pixels
-                                   (mod (+ i height se-height/2 (- k)) height)
-                                   (mod (+ j width  se-width/2  (- l)) width))))))
+                                   (mod (+ i se-height/2 (- k)) height)
+                                   (mod (+ j se-width/2  (- l)) width))))))
                     result)))))
   (def-morphological-op erode min
     "Erode binary image. STRUCTURING-ELEMENT is an optional 2D simple
