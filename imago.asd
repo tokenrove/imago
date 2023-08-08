@@ -100,9 +100,10 @@
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago
-               :imago/jpeg-turbo
+               :imago/pngio
                :common-lisp-jupyter
-               :cl-base64)
+               :cl-base64
+               :flexi-streams)
   :pathname "jupyter"
   :components ((:file "package")
                (:file "jupyter" :depends-on ("package"))))
