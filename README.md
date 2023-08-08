@@ -16,14 +16,16 @@ deal with jpeg files by loading `imago/jpeg-turbo` system. Make sure that
 functions (or just `imago:read-image` and `imago:write-image`) to use this
 functionality.
 
-## Reading images with pngload
+## Alternative png I/O with imago/pngio
 
 You can use more advanced and faster
 [pngload](https://github.com/bufferswap/pngload) library to read png files by
-loading `imago/pngload` system. Use `imago-pngload:read-pngload` (or just
+loading `imago/pngio` system. Use `imago-pngio:read-png` (or just
 `imago:read-image`) to use this functionality. **NB:** `pngload` automatically
 converts indexed color images to RGB (or ARGB) images. If you want to work with
-indexed images, use old png loader instead.
+indexed images, use old png loader instead. Also
+[zpng](https://github.com/xach/zpng) (via `imago-pngio:write-png`) library will
+be used for saving png images.
 
 ## Creating an image
 
