@@ -59,5 +59,42 @@
   (def-method :indexed-colour imago:rgb-pixel imago:make-color
               imago:make-rgb-image-from-pixels (* * *)))
 
+
+(defgeneric translate-to-zpng-format (image))
+
+;; KLUDGE: Here we always write alpha channel
+(macrolet
+    ((def-method (image-type color-type zpng-color-type &rest color-accessors)
+       `(defmethod translate-to-zpng-format ((image ,image-type))
+          (declare (optimize (speed 3)))
+          (let* ((imago-pixels (imago:image-pixels image))
+                 (size (array-total-size imago-pixels))
+                 (colors ,(length color-accessors))
+                 (zpng-pixels (make-array (* size colors) :element-type '(unsigned-byte 8))))
+            (declare (type (simple-array ,color-type (* *)) imago-pixels))
+            (loop for i fixnum below size
+                  for pixel fixnum = (row-major-aref imago-pixels i) do
+                  ,@(loop for j from 0 by 1
+                          for accessor in color-accessors collect
+                          `(setf (aref zpng-pixels (+ (* i colors) ,j))
+                                 (,accessor pixel))))
+            (make-instance 'zpng:png
+                           :width  (imago:image-width  image)
+                           :height (imago:image-height image)
+                           :color-type ,zpng-color-type
+                           :image-data zpng-pixels)))))
+  (def-method imago:grayscale-image imago:grayscale-pixel :grayscale-alpha
+    imago:gray-intensity imago:gray-alpha)
+  (def-method imago:rgb-image imago:rgb-pixel :truecolor-alpha
+    imago:color-red imago:color-green imago:color-blue imago:color-alpha))
+
+(defun write-png-to-stream (image stream)
+  "Write png image to stream using zpng library."
+  (zpng:write-png-stream (translate-to-zpng-format image) stream)
+  image)
+
+(imago:def-writer-to-file write-png write-png-to-stream ())
+
 (imago:register-image-io-functions '("png")
- :reader #'read-png)
+ :reader #'read-png
+ :writer #'write-png)

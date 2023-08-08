@@ -89,7 +89,7 @@
   :version "0.1"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
-  :depends-on (:imago :pngload)
+  :depends-on (:imago :pngload :zpng)
   :pathname "pngload/"
   :components ((:file "package")
                (:file "file-png" :depends-on ("package"))))
