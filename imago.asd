@@ -18,7 +18,7 @@
   :depends-on (:trivial-gray-streams
                :alexandria
                :serapeum)
-  :pathname "bit-io/"
+  :pathname "bit-io"
   :components ((:file "package")
                (:file "bit-io" :depends-on ("package"))))
 
@@ -35,7 +35,7 @@
                :array-operations
                :imago/bit-io
                :flexi-streams)
-  :pathname "src/"
+  :pathname "src"
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "utilities" :depends-on ("package"))
@@ -70,7 +70,7 @@
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :fiveam)
-  :pathname "tests/"
+  :pathname "tests"
   :components ((:file "package")
                (:file "tests" :depends-on ("package"))))
 
@@ -80,17 +80,17 @@
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :jpeg-turbo)
-  :pathname "jpeg-turbo/"
+  :pathname "jpeg-turbo"
   :components ((:file "package")
                (:file "file-jpg" :depends-on ("package"))))
 
-(defsystem :imago/pngload
-  :name :imago/pngload
+(defsystem :imago/pngio
+  :name :imago/pngio
   :version "0.1"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :pngload :zpng)
-  :pathname "pngload/"
+  :pathname "pngio"
   :components ((:file "package")
                (:file "file-png" :depends-on ("package"))))
 
@@ -103,6 +103,6 @@
                :imago/jpeg-turbo
                :common-lisp-jupyter
                :cl-base64)
-  :pathname "jupyter/"
+  :pathname "jupyter"
   :components ((:file "package")
                (:file "jupyter" :depends-on ("package"))))

@@ -1,4 +1,4 @@
-(in-package :imago-pngload)
+(in-package :imago-pngio)
 
 (defgeneric translate-to-imago-format (image color-type)
   (:documentation "Convert IMAGE from pngload format to imago format"))
