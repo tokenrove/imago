@@ -27,12 +27,11 @@
                       (aref array (+ idx% 1))
                       (aref array (+ idx% 0))))))
 
-(defun read-jpg (filespec)
+(defun read-jpg-from-stream (stream)
   "Read grayscale or colorful jpeg image using cl-jpeg. Colorful images are
-converted to RGB colorspace."
-  (declare (type (or string pathname) filespec))
+converted to RGB colorspace. Stream must be a stream of unsigned octets."
   (multiple-value-bind (data height width ncomp)
-      (cl-jpeg:decode-image filespec)
+      (cl-jpeg:decode-stream stream)
     (let ((image (make-instance
                   (case ncomp
                     (1 'grayscale-image)
@@ -46,6 +45,10 @@ converted to RGB colorspace."
       (dotimes (idx (* width height))
         (read-jpg-pixel image data idx))
       image)))
+
+(def-reader-from-file read-jpg read-jpg-from-stream
+  "Read grayscale or colorful jpeg image using cl-jpeg. Colorful images are
+converted to RGB colorspace.")
 
 ;; Writing
 (defgeneric write-jpg-pixel (image array idx)
@@ -81,7 +84,7 @@ integer from 1 to 64 where 64 is default and the best quality."
          (data (make-array data-size :element-type '(unsigned-byte 8))))
     (dotimes (idx (* width height))
       (write-jpg-pixel image data idx))
-    (cl-jpeg::encode-image-stream
+    (cl-jpeg:encode-image-stream
      stream data ncomp height width
      :q-factor quality
      ;; Seems like a bug in cl-jpeg that I need to specify this
@@ -90,18 +93,12 @@ integer from 1 to 64 where 64 is default and the best quality."
                  (vector cl-jpeg::+q-luminance-hi+)
                  (vector cl-jpeg::+q-luminance-hi+
                          cl-jpeg::+q-chrominance-hi+))))
-  t)
+  image)
 
-(defun write-jpg (image filespec &key (quality 64))
-  "Write imago image to jpeg file. QUALITY is an integer from 1 to 64
-where 64 is default and the best quality."
-  (declare (type (or string pathname) filespec))
-  (with-open-file (stream filespec
-                          :direction         :output
-                          :if-does-not-exist :create
-                          :if-exists         :supersede
-                          :element-type      '(unsigned-byte 8))
-    (write-jpg-to-stream image stream :quality quality)))
+(def-writer-to-file
+    write-jpg write-jpg-to-stream ((quality 64))
+    "Write imago image to jpeg file. QUALITY is an integer from 1 to 64
+where 64 is default and the best quality.")
 
 (register-image-io-functions '("jpg" "jpeg")
                              :reader #'read-jpg

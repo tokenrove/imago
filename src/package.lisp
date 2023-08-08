@@ -68,10 +68,10 @@
            #:register-image-io-functions
 
            ;; TODO: stream versions for all types.
-           #:read-jpg #:write-jpg #:write-jpg-to-stream
-           #:read-png #:write-png
+           #:read-jpg #:write-jpg #:read-jpg-from-stream #:write-jpg-to-stream
+           #:read-png #:write-png #:read-png-from-stream #:write-png-to-stream
            #:read-pnm #:write-pnm #:read-pnm-from-stream #:write-pnm-to-stream
-           #:read-tga #:write-tga
+           #:read-tga #:write-tga #:read-tga-from-stream #:write-tga-to-stream
            #:read-pcx #:write-pcx
 
            #:enhance-contrast

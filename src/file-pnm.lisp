@@ -115,14 +115,9 @@
                                   stream (zerop x))))
           image)))))
 
-(defun read-pnm (filespec)
+(def-reader-from-file read-pnm read-pnm-from-stream
   "Reads data for an image in PNM format from a file, and returns
-a newly created image correponding to those data."
-  (declare (type (or string pathname) filespec))
-  (with-open-file (stream filespec
-                          :direction     :input
-                          :element-type '(unsigned-byte 8))
-    (read-pnm-from-stream stream)))
+a newly created image correponding to those data.")
 
 ;; Writing
 (defun image-type+format=>magic (image format)
@@ -155,7 +150,7 @@ a newly created image correponding to those data."
 
 (defgeneric pnm-write-pixel (image format stream pixel))
 
-(defun write-pnm-to-stream (image stream format)
+(defun write-pnm-to-stream (image stream &key (format :ascii))
   "Write IMAGE to an octet stream STREAM. FORMAT can be either :BINARY
 or :ASCII."
   (declare (type image image)
@@ -207,22 +202,11 @@ or :ASCII."
                             stream pixel)
   (write-byte (gray-intensity pixel) stream))
 
-(defun write-pnm (image filespec output-format)
-  "Writes the image data to a file in PNM format.
-OUTPUT-FORMAT can be either :ASCII or :BINARY."
-  (declare (type image image)
-           (type (or string pathname) filespec)
-           (type (member :binary :ascii) output-format))
-  (with-open-file (stream filespec
-                          :direction         :output
-                          :if-does-not-exist :create
-                          :if-exists         :supersede
-                          :element-type      '(unsigned-byte 8))
-    (write-pnm-to-stream image stream output-format))
-  image)
+(def-writer-to-file
+    write-pnm write-pnm-to-stream ((format :ascii))
+    "Writes the image data to a file in PNM format.
+OUTPUT-FORMAT can be either :ASCII or :BINARY.")
 
 (register-image-io-functions '("pnm" "ppm" "pgm" "pbm")
                              :reader #'read-pnm
-                             :writer #'(lambda (image filespec)
-                                         ;; TODO: need parameter here
-                                         (write-pnm image filespec :ascii)))
+                             :writer #'write-pnm)

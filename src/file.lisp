@@ -73,3 +73,25 @@ registers that I/O handler for the specified EXTENSIONS."
     (register-image-reader extensions reader))
   (when writer
     (register-image-writer extensions writer)))
+
+(defmacro def-reader-from-file (reader-name stream-reader &optional documentation)
+  (alex:with-gensyms (filename stream)
+    `(defun ,reader-name (,filename)
+       ,@(if documentation (list documentation))
+       (with-open-file (,stream ,filename :element-type '(unsigned-byte 8))
+         (,stream-reader ,stream)))))
+
+(defmacro def-writer-to-file (writer-name stream-writer keyword-arguments &optional documentation)
+  (alex:with-gensyms (filename stream image)
+    `(defun ,writer-name (,image ,filename ,@(if keyword-arguments `(&key ,@keyword-arguments)))
+       ,@(if documentation (list documentation))
+       (with-open-file (,stream ,filename
+                                :direction         :output
+                                :if-does-not-exist :create
+                                :if-exists         :supersede
+                                :element-type      '(unsigned-byte 8))
+         (,stream-writer ,image ,stream
+                         ,@(loop for arg in keyword-arguments
+                                 for fst = (if (atom arg) arg (car arg)) append
+                                 (list (intern (symbol-name fst) (find-package :keyword))
+                                       fst)))))))

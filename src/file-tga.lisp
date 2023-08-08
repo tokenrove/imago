@@ -13,47 +13,47 @@
 (in-package :imago)
 
 
-(defun read-tga (filespec)
-  (with-open-file (stream filespec :direction :input
-                   :element-type '(unsigned-byte 8))
-    (let* ((id-field-length (read-byte stream))
-           (colormap-type (read-byte stream))
-           (type (read-byte stream))
-           (colormap-origin (read-lsb-integer stream 2))
-           (colormap-length (read-lsb-integer stream 2))
-           (colormap-bpp (read-byte stream))
-           (origin-x (read-lsb-integer stream 2))
-           (origin-y (read-lsb-integer stream 2))
-           (width (read-lsb-integer stream 2))
-           (height (read-lsb-integer stream 2))
-           (pixel-size (read-byte stream))
-           (descriptor (read-byte stream))
-           (alpha-size (ldb (byte 4 0) descriptor))
-           (top-down-p (= (ldb (byte 1 5) descriptor) 1)))
-      (declare (ignore colormap-type origin-x origin-y))
-      (skip-bytes stream id-field-length)
-      (let ((colormap (read-tga-colormap stream
-                                         colormap-origin colormap-length
-                                         colormap-bpp)))
-        (case type
-          (1 (let ((image (make-instance 'indexed-image
-                                         :width width :height height
-                                         :color-count (+ colormap-origin
-                                                         colormap-length))))
-               (replace (image-colormap image) colormap)
-               (read-tga-data stream image width height top-down-p
-                              'read-tga-color-index pixel-size)
-               image))
-          (2 (let ((image (make-instance 'rgb-image
-                                         :width width :height height)))
-               (read-tga-data stream image width height top-down-p
-                              'read-tga-color pixel-size)
-               (when (zerop alpha-size)
-                 (do-image-pixels (image pixel x y)
-                   (multiple-value-bind (r g b)
-                       (color-rgb pixel)
-                     (setf pixel (make-color r g b)))))
-               image)))))))
+(defun read-tga-from-stream (stream)
+  (let* ((id-field-length (read-byte stream))
+         (colormap-type (read-byte stream))
+         (type (read-byte stream))
+         (colormap-origin (read-lsb-integer stream 2))
+         (colormap-length (read-lsb-integer stream 2))
+         (colormap-bpp (read-byte stream))
+         (origin-x (read-lsb-integer stream 2))
+         (origin-y (read-lsb-integer stream 2))
+         (width (read-lsb-integer stream 2))
+         (height (read-lsb-integer stream 2))
+         (pixel-size (read-byte stream))
+         (descriptor (read-byte stream))
+         (alpha-size (ldb (byte 4 0) descriptor))
+         (top-down-p (= (ldb (byte 1 5) descriptor) 1)))
+    (declare (ignore colormap-type origin-x origin-y))
+    (skip-bytes stream id-field-length)
+    (let ((colormap (read-tga-colormap stream
+                                       colormap-origin colormap-length
+                                       colormap-bpp)))
+      (case type
+        (1 (let ((image (make-instance 'indexed-image
+                                       :width width :height height
+                                       :color-count (+ colormap-origin
+                                                       colormap-length))))
+             (replace (image-colormap image) colormap)
+             (read-tga-data stream image width height top-down-p
+                            'read-tga-color-index pixel-size)
+             image))
+        (2 (let ((image (make-instance 'rgb-image
+                                       :width width :height height)))
+             (read-tga-data stream image width height top-down-p
+                            'read-tga-color pixel-size)
+             (when (zerop alpha-size)
+               (do-image-pixels (image pixel x y)
+                 (multiple-value-bind (r g b)
+                     (color-rgb pixel)
+                   (setf pixel (make-color r g b)))))
+             image))))))
+
+(def-reader-from-file read-tga read-tga-from-stream)
 
 (defun read-tga-colormap (stream origin length bpp)
   (loop with colormap = (make-array (+ origin length) :initial-element 0)
@@ -90,15 +90,9 @@
                           (funcall reader stream bpp)))))
 
 
-(defun write-tga (image filespec &key (top-down-p nil))
-  (with-open-file (stream filespec :direction :output :if-exists :supersede
-                   :element-type '(unsigned-byte 8))
-    (write-tga-to-stream image stream top-down-p))
-  image)
+(defgeneric write-tga-to-stream (image stream &key top-down-p))
 
-(defgeneric write-tga-to-stream (image stream top-down-p))
-
-(defmethod write-tga-to-stream ((image rgb-image) stream top-down-p)
+(defmethod write-tga-to-stream ((image rgb-image) stream &key top-down-p)
   (write-byte 0 stream)
   (write-byte 0 stream)
   (write-byte 2 stream)
@@ -115,9 +109,10 @@
                     (write-byte (color-blue pixel) stream)
                     (write-byte (color-green pixel) stream)
                     (write-byte (color-red pixel) stream)
-                    (write-byte (color-alpha pixel) stream))))
+                    (write-byte (color-alpha pixel) stream)))
+  image)
 
-(defmethod write-tga-to-stream ((image indexed-image) stream top-down-p)
+(defmethod write-tga-to-stream ((image indexed-image) stream &key top-down-p)
   (let* ((colormap (image-colormap image))
          (colormap-length (length colormap))
          (pixel-size (cond ((<= (length colormap) 256) 8)
@@ -138,7 +133,8 @@
     (write-tga-data image top-down-p
                     (lambda (pixel)
                       (write-lsb-integer pixel stream
-                                         (floor pixel-size 8))))))
+                                         (floor pixel-size 8)))))
+  image)
 
 (defun write-tga-data (image top-down-p pixel-writer)
   (loop with width = (image-width image)
@@ -148,6 +144,8 @@
         repeat height
         do (loop for x below width
                  do (funcall pixel-writer (image-pixel image x y)))))
+
+(def-writer-to-file write-tga write-tga-to-stream (top-down-p))
 
 (register-image-io-functions '("tga")
                              :reader #'read-tga
