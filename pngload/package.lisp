@@ -1,4 +1,3 @@
 (defpackage imago-pngload
-  (:use #:cl
-        #:imago)
-  (:export #:read-pngload))
+  (:use #:cl)
+  (:export #:read-png #:read-png-from-stream))

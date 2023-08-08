@@ -66,6 +66,8 @@
            #:read-image #:write-image
            #:register-image-reader #:register-image-writer
            #:register-image-io-functions
+           #:def-reader-from-file
+           #:def-writer-to-file
 
            ;; TODO: stream versions for all types.
            #:read-jpg #:write-jpg #:read-jpg-from-stream #:write-jpg-to-stream
