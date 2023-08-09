@@ -162,6 +162,13 @@ OPERATION-ERROR is signalled."
   (define-%resize-method grayscale-image make-grayscale-image-from-pixels grayscale-pixel)
   (define-%resize-method binary-image make-binary-image-from-pixels bit))
 
+(defmethod %resize ((method (eql :nearest-neighbor)) (image indexed-image) new-width new-height)
+  (declare (optimize (speed 3)))
+  (let ((interpolator (interpolator image method)))
+    (make-instance 'indexed-image
+                   :pixels (resize-pixels 'indexed-pixel interpolator new-width new-height)
+                   :colormap (image-colormap image))))
+
 ;; METHOD = :BOX-SAMPLING is an alias for DOWNSCALE
 (defmethod %resize ((method (eql :box-sampling)) (image image) new-width new-height)
   (downscale image new-width new-height))
