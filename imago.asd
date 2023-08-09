@@ -94,6 +94,14 @@
   :components ((:file "package")
                (:file "file-png" :depends-on ("package"))))
 
+;; An old name of imago/pngio for compatibility
+(defsystem :imago/pngload
+  :name :imago/pngload
+  :version "0.1"
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago/pngio))
+
 (defsystem :imago/jupyter
   :name :imago/jupyter
   :version "0.2"
