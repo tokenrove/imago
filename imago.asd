@@ -52,6 +52,7 @@
                (:file "interpolate" :depends-on ("image" "color"))
                (:file "rotate" :depends-on ("image" "color"))
                (:file "operations" :depends-on ("image" "color"))
+               (:file "downscale" :depends-on ("image" "color"))
                (:file "file" :depends-on ("conditions"))
                (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
                (:file "file-pnm" :depends-on ("image" "color" "file"))
