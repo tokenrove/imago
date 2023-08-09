@@ -150,12 +150,12 @@ and :BICUBIC."
                              (single-float 0f0 1f0))
                             (values t &optional))
                    interpolator))
-    (array-operations/utilities:nested-loop (y x)
-        (array-dimensions pixels)
-      (setf (aref pixels y x)
-            (funcall interpolator
-                     (/ x new-width%)
-                     (/ y new-height%))))
+    (loop for y fixnum below new-height do
+          (loop for x fixnum below new-width do
+                (setf (aref pixels y x)
+                      (funcall interpolator
+                               (/ x new-width%)
+                               (/ y new-height%)))))
     (make-instance (class-of image)
                    :pixels pixels
                    :width  new-width
