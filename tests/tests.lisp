@@ -128,7 +128,7 @@
 
 (test convert-from-indexed
   ;; pngload automatically converts indexed images to RGB images
-  (when (not (find-package :imago-pngload))
+  (when (not (find-package :imago-pngio))
     (test-converters
      (read-image *indexed-image-pathname*)
      `(#+nil ; Broken
