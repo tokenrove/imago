@@ -131,35 +131,50 @@ OPERATION-ERROR is signalled."
                                (+ y y%))))
     dest))
 
+(declaim (inline resize-pixels))
+(defun resize-pixels (pixel-type interpolator new-width new-height)
+  (declare (type image-dimension new-width new-height)
+           (type (sera:-> ((single-float 0f0 1f0)
+                           (single-float 0f0 1f0))
+                          (values t &optional))
+                 interpolator))
+  (let ((new-pixels (make-array (list new-height new-width)
+                            :element-type pixel-type))
+        (new-width%  (float new-width))
+        (new-height% (float new-height)))
+    (loop for y fixnum below new-height do
+          (loop for x fixnum below new-width do
+                (setf (aref new-pixels y x)
+                      (funcall interpolator
+                               (/ x new-width%)
+                               (/ y new-height%)))))
+    new-pixels))
+
+(defgeneric %resize (method image new-width new-height))
+
+(macrolet ((define-%resize-method (image-type image-cons pixel-type)
+             `(defmethod %resize (method (image ,image-type) new-width new-height)
+                (declare (optimize (speed 3)))
+                (let ((interpolator (interpolator image method)))
+                  (,image-cons
+                   (resize-pixels ',pixel-type interpolator new-width new-height))))))
+  (define-%resize-method rgb-image make-rgb-image-from-pixels rgb-pixel)
+  (define-%resize-method grayscale-image make-grayscale-image-from-pixels grayscale-pixel)
+  (define-%resize-method binary-image make-binary-image-from-pixels bit))
+
+;; METHOD = :BOX-SAMPLING is an alias for DOWNSCALE
+(defmethod %resize ((method (eql :box-sampling)) (image image) new-width new-height)
+  (downscale image new-width new-height))
+
 (defun resize (image new-width new-height
                &key (interpolation *default-interpolation*))
   "Returns an newly created image corresponding to the
 IMAGE image, with given dimensions. Currently supported
-INTERPOLATION-METHODs are :NEAREST-NEIGHBOR, :BILINEAR,
-and :BICUBIC."
-  (declare (type image image)
-           (type image-dimension new-width new-height))
-  (let ((pixels (make-array (list new-height new-width)
-                            :element-type (array-element-type
-                                           (image-pixels image))))
-        (new-width%  (float new-width))
-        (new-height% (float new-height))
-        (interpolator (interpolator image interpolation)))
-    (declare (type (simple-array * (* *)) pixels)
-             (type (sera:-> ((single-float 0f0 1f0)
-                             (single-float 0f0 1f0))
-                            (values t &optional))
-                   interpolator))
-    (loop for y fixnum below new-height do
-          (loop for x fixnum below new-width do
-                (setf (aref pixels y x)
-                      (funcall interpolator
-                               (/ x new-width%)
-                               (/ y new-height%)))))
-    (make-instance (class-of image)
-                   :pixels pixels
-                   :width  new-width
-                   :height new-height)))
+INTERPOLATION methods are :NEAREST-NEIGHBOR, :BILINEAR,
+:BICUBIC and :BOX-SAMPLING. When :BOX-SAMPLING is passed RESIZE just
+calls DOWNSCALE function which uses box sampling to downscale
+images. This last method can only be used for downscaling."
+  (%resize interpolation image new-width new-height))
 
 (defun scale (image width-factor height-factor
               &key (interpolation *default-interpolation*))

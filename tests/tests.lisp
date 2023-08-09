@@ -156,10 +156,9 @@
                   (dims1 (array-dimensions pixels1))
                   (dims2 (array-dimensions pixels2)))
              (is (equal dims1 dims2))
-             (is (loop for y below (first dims1)
-                       always (loop for x below (second dims1)
-                                    always (= (aref pixels1 y x)
-                                              (aref pixels2 y x))))))))
+             (is (every #'=
+                        (aops:flatten pixels1)
+                        (aops:flatten pixels2))))))
     (let ((image1 (read-image (resize-image-pathname 1))))
       (let ((actual (resize image1 200 200 :interpolation :bicubic))
             (image2 (read-image (resize-image-pathname 2))))
