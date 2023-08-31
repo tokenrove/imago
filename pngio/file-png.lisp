@@ -17,7 +17,7 @@
   (let ((image (read-png-safely stream)))
     ;; < 8 bits per color can appear in palettes
     (when (> (pngload:bit-depth image) 8)
-      (error 'decode-error
+      (error 'imago:decode-error
              :format-control "Only 8 bits per color is supported"))
     (translate-to-imago-format
      image (pngload:color-type image))))
