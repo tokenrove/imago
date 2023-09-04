@@ -32,7 +32,9 @@
           (let* ((data (pngload:data image))
                  (width (pngload:width image))
                  (height (pngload:height image))
-                 (depth (pngload:bit-depth image))
+                 ;; Indexed images are translated to 8 bit images by pngload
+                 (depth (if (eq ,png-color-type :indexed-colour)
+                            8 (pngload:bit-depth image)))
                  (pixels (make-array (list height width)
                                      :element-type ',pixel-type))
                  (color-components (if (= (array-rank data) 2) 1
