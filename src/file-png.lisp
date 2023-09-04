@@ -137,7 +137,8 @@
                                    (1 (mod (+ sample left) 256))
                                    (2 (mod (+ sample up) 256))
                                    (3 (mod (+ sample
-                                              (floor (+ up left) 2)) 256))
+                                              (floor (+ up left) 2))
+                                           256))
                                    (4 (mod (+ sample
                                               (png-paeth left up upleft))
                                            256)))
@@ -154,9 +155,10 @@
           for y below height
           do (loop for x below width
                    do (macrolet ((next-byte ()
-                                 `(ash (read-array-element
-                                        samples samples-index)
-                                   (- 8 depth))))
+                                 `(convert-color-to-imago-format
+                                   (read-array-element
+                                    samples samples-index)
+                                   depth)))
                         (setf (aref pixels y x)
                               (case color-type
                                 (0 (make-gray (next-byte)))

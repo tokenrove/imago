@@ -25,27 +25,34 @@
 (imago:def-reader-from-file read-png read-png-from-stream)
 
 (macrolet
-    ((def-method (png-color-type pixel-type make-pixel make-image shape &optional color-components)
+    ((def-method (png-color-type pixel-type make-pixel make-image shape
+                                 &optional color-components)
        `(defmethod translate-to-imago-format (image (color-type (eql ,png-color-type)))
           (declare (optimize (speed 3)))
           (let* ((data (pngload:data image))
                  (width (pngload:width image))
                  (height (pngload:height image))
+                 (depth (pngload:bit-depth image))
                  (pixels (make-array (list height width)
                                      :element-type ',pixel-type))
                  (color-components (if (= (array-rank data) 2) 1
                                        (array-dimension data 2))))
             (declare (type (simple-array (unsigned-byte 8) ,shape) data)
+                     (type (integer 1 8) depth)
                      (ignorable color-components))
             (loop for i fixnum below (array-total-size pixels) do
                   (setf (row-major-aref pixels i)
                         ,(if color-components
                              `(,make-pixel
                                ,@(loop for j below color-components collect
-                                       `(row-major-aref data (+ (* i ,color-components) ,j))))
+                                       `(imago:convert-color-to-imago-format
+                                         (row-major-aref data (+ (* i ,color-components) ,j))
+                                         depth)))
                              `(apply #',make-pixel
                                      (loop for j fixnum below color-components collect
-                                           (row-major-aref data (+ (* i color-components) j)))))))
+                                           (imago:convert-color-to-imago-format
+                                            (row-major-aref data (+ (* i color-components) j))
+                                            depth))))))
             (,make-image pixels)))))
   (def-method :greyscale imago:grayscale-pixel imago:make-gray
               imago:make-grayscale-image-from-pixels (* *) 1)

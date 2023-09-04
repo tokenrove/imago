@@ -111,6 +111,11 @@
             (is (typep (funcall converter image) result))))
         conversions))
 
+(test color-range-conversion
+  (loop for bits from 1 to 8 do
+        (is (= (convert-color-to-imago-format 0 bits) 0))
+        (is (= (convert-color-to-imago-format (1- (ash 1 bits)) bits) 255))))
+
 (test convert-from-rgb
   (test-converters
    (read-image *rgb-image-pathname*)

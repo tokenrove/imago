@@ -41,6 +41,7 @@
            #:make-gray
            #:gray-intensity #:gray-alpha
            #:invert-gray
+           #:convert-color-to-imago-format
 
            #:+white+ #:+black+
            #:+red+ #:+green+ #:+blue+

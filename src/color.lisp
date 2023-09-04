@@ -140,6 +140,24 @@
       (setf (aref colormap i) (make-color i i i)))
     colormap))
 
+;; Color conversions
+;; http://threadlocalmutex.com/?page_id=60
+(sera:-> convert-color-to-imago-format ((unsigned-byte 8) (integer 1 8))
+         (values (unsigned-byte 8) &optional))
+(defun convert-color-to-imago-format (color depth)
+  (declare (optimize (speed 3)))
+  (ecase depth
+    (1 (* color 255))
+    (2 (* color 85))
+    (3 (ash (1+ (* color 146)) -2))
+    (4 (* color 17))
+    (5 (ash (+ 23 (* color 527)) -6))
+    (6 (ash (+ 33 (* color 259)) -6))
+    (7 (ash (+ 64 (* color 257)) -7))
+    (8 color)))
+
+;; Constants
+
 (defconstant +white+ (make-color #xff #xff #xff))
 (defconstant +black+ (make-color #x00 #x00 #x00))
 (defconstant +red+ (make-color #xff #x00 #x00))
