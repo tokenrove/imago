@@ -196,3 +196,28 @@ more details."
             (floor (* width width-factor))
             (floor (* height height-factor))
             :interpolation interpolation)))
+
+(defgeneric invert (image)
+  (:documentation "Create a new image with colors of the supplied
+image being inverted."))
+
+(defmethod invert ((image rgb-image))
+  (let ((pixels (image-pixels image)))
+    (make-rgb-image-from-pixels
+     (aops:vectorize* 'rgb-pixel
+         (pixels)
+       (invert-color pixels)))))
+
+(defmethod invert ((image grayscale-image))
+  (let ((pixels (image-pixels image)))
+    (make-grayscale-image-from-pixels
+     (aops:vectorize* 'grayscale-pixel
+         (pixels)
+       (invert-gray pixels)))))
+
+(defmethod invert ((image binary-image))
+  (let ((pixels (image-pixels image)))
+    (make-binary-image-from-pixels
+     (aops:vectorize* 'bit
+         (pixels)
+       (- 1 pixels)))))
