@@ -127,7 +127,30 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
 ;; ====================
 ;; Erode & Dilate
 ;; ====================
-(macrolet ((def-morphological-op (name operation documentation)
+(sera:-> kernel-some
+         ((simple-array bit (* *))
+          (simple-array bit (* *))
+          alex:non-negative-fixnum alex:non-negative-fixnum
+          alex:non-negative-fixnum alex:non-negative-fixnum
+          alex:non-negative-fixnum alex:non-negative-fixnum
+          (sera:-> (bit bit) (values boolean &optional)))
+         (values boolean &optional))
+(declaim (inline kernel-some))
+(defun kernel-some (kernel array i j kh kw h w fn)
+  (declare (optimize (speed 3)))
+  (let ((kh/2 (floor kh 2))
+        (kw/2 (floor kw 2)))
+    (loop for k fixnum below kh do
+          (loop for l fixnum below kw do
+                (when (funcall fn
+                               (aref kernel k l)
+                               (aref array
+                                     (mod (+ i kh/2 (- k))  h)
+                                     (mod (+ j kw/2  (- l)) w)))
+                  (return-from kernel-some t)))))
+  nil)
+
+(macrolet ((def-morphological-op (name op succ documentation)
              `(progn
                 (sera:-> ,name (binary-image &optional (simple-array bit (* *)))
                          (values binary-image &optional))
@@ -139,25 +162,22 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                          (result (make-binary-image width height))
                          (image-pixels  (image-pixels image))
                          (result-pixels (image-pixels result)))
-                    (declare (type alex:positive-fixnum width height)
-                             (type (simple-array bit (* *)) image-pixels result-pixels))
-                    (destructuring-bind (se-height/2 se-width/2)
-                        (mapcar (the function (alex:rcurry #'floor 2))
-                                (array-dimensions structuring-element))
-                      (declare (type alex:positive-fixnum se-height/2 se-width/2))
-                      (aops:each-index! result-pixels
-                          (i j)
-                        (aops:reduce-index #',operation (k l)
-                          (* (aref structuring-element k l)
-                             (aref image-pixels
-                                   (mod (+ i se-height/2 (- k)) height)
-                                   (mod (+ j se-width/2  (- l)) width))))))
+                    (destructuring-bind (se-height se-width)
+                        (array-dimensions structuring-element)
+                      (aops:each-index! result-pixels (i j)
+                        (if (kernel-some structuring-element image-pixels
+                                         i j se-height se-width height width
+                                         (lambda (kernel pixel)
+                                           (declare (type bit kernel pixel))
+                                           (and (not (zerop kernel))
+                                                (,op (zerop pixel)))))
+                            ,succ (- (1- ,succ)))))
                     result)))))
-  (def-morphological-op erode min
+  (def-morphological-op erode identity 0
     "Erode binary image. STRUCTURING-ELEMENT is an optional 2D simple
 array of bits which serves as a structuring element and defaults to
 *STRUCTURING-ELEMENT*.")
-  (def-morphological-op dilate max
+  (def-morphological-op dilate not 1
     "Dilate binary image. STRUCTURING-ELEMENT is an optional 2D simple
 array of bits which serves as a structuring element and defaults to
 *STRUCTURING-ELEMENT*."))
