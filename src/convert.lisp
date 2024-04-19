@@ -45,72 +45,57 @@ the image"))
 
 
 (defmethod convert-to-rgb ((image indexed-image))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (colormap (image-colormap image))
-         (pixels (image-pixels image))
-         (result (make-instance 'rgb-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((color-index (row-major-aref pixels i)))
-        (setf (row-major-aref result-pixels i)
-              (aref colormap color-index))))
-    result))
+  (let ((colormap (image-colormap image))
+        (pixels   (image-pixels   image)))
+    (make-rgb-image-from-pixels
+     ;; XXX: What does a colormap really contain?
+     (aops:vectorize* 'imago:rgb-pixel
+         (pixels)
+       (aref colormap pixels)))))
 
 (defmethod convert-to-rgb ((image grayscale-image))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (pixels (image-pixels image))
-         (result (make-instance 'rgb-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((gray (gray-intensity (row-major-aref pixels i))))
-        (setf (row-major-aref result-pixels i)
-              (make-color gray gray gray))))
-    result))
+  (let ((pixels (image-pixels image)))
+    (make-rgb-image-from-pixels
+     (aops:vectorize* 'imago:rgb-pixel
+         (pixels)
+       (let ((alpha     (gray-alpha     pixels))
+             (intensity (gray-intensity pixels)))
+         (make-color intensity intensity intensity alpha))))))
 
+(defmethod convert-to-rgb ((image binary-image))
+  (let ((pixels (image-pixels image)))
+    (make-rgb-image-from-pixels
+     (aops:vectorize* 'imago:rgb-pixel
+         (pixels)
+       (let ((intensity (* 255 pixels)))
+         (make-color intensity intensity intensity))))))
 
 (defmethod convert-to-grayscale ((image rgb-image))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (pixels (image-pixels image))
-         (result (make-instance 'grayscale-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((intensity (color-intensity (row-major-aref pixels i))))
-        (setf (row-major-aref result-pixels i) (make-gray intensity))))
-    result))
+  (let ((pixels (image-pixels image)))
+    (make-grayscale-image-from-pixels
+     (aops:vectorize* 'imago:grayscale-pixel
+         (pixels)
+       (let ((intensity (color-intensity pixels))
+             (alpha     (color-alpha     pixels)))
+         (make-gray intensity alpha))))))
 
 (defmethod convert-to-grayscale ((image indexed-image))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (colormap (image-colormap image))
-         (pixels (image-pixels image))
-         (result (make-instance 'grayscale-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((color-index (row-major-aref pixels i)))
-        (setf (row-major-aref result-pixels i)
-              (make-gray (color-intensity (aref colormap color-index))))))
-    result))
+  (let ((colormap (image-colormap image))
+        (pixels   (image-pixels   image)))
+    (make-grayscale-image-from-pixels
+     ;; XXX: What does a colormap really contain?
+     (aops:vectorize* 'imago:grayscale-pixel
+         (pixels)
+       (make-gray (color-intensity (aref colormap pixels)))))))
 
 (defmethod convert-to-grayscale ((image binary-image))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (pixels (image-pixels image))
-         (result (make-instance 'grayscale-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (setf (row-major-aref result-pixels i)
-            (* 255 (row-major-aref pixels i))))
-    result))
+  (let ((pixels (image-pixels image)))
+    (make-grayscale-image-from-pixels
+     (aops:vectorize* 'imago:grayscale-pixel
+         (pixels)
+       (make-gray (* 255 pixels))))))
 
-
+;; TODO: Make more comprehensive
 (defmethod convert-to-indexed ((image grayscale-image))
   (let* ((width (image-width image))
          (height (image-height image))
@@ -125,29 +110,18 @@ the image"))
             (gray-intensity (row-major-aref pixels i))))
     result))
 
-
 (defmethod convert-to-binary ((image rgb-image) (threshold integer))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (pixels (image-pixels image))
-         (result (make-instance 'binary-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((intensity (color-intensity (row-major-aref pixels i))))
-        (setf (row-major-aref result-pixels i)
-              (if (< intensity threshold) 0 1))))
-    result))
+  (let ((pixels (image-pixels image)))
+    (make-binary-image-from-pixels
+     (aops:vectorize* 'bit
+         (pixels)
+       (let ((intensity (color-intensity pixels)))
+         (if (< intensity threshold) 0 1))))))
 
 (defmethod convert-to-binary ((image grayscale-image) (threshold integer))
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (pixels (image-pixels image))
-         (result (make-instance 'binary-image
-                                :width width :height height))
-         (result-pixels (image-pixels result)))
-    (dotimes (i (* width height))
-      (let ((intensity (gray-intensity (row-major-aref pixels i))))
-        (setf (row-major-aref result-pixels i)
-              (if (< intensity threshold) 0 1))))
-    result))
+  (let ((pixels (image-pixels image)))
+    (make-binary-image-from-pixels
+     (aops:vectorize* 'bit
+         (pixels)
+       (let ((intensity (gray-intensity pixels)))
+         (if (< intensity threshold) 0 1))))))
