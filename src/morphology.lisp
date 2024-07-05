@@ -131,22 +131,21 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
          ((simple-array bit (* *))
           (simple-array bit (* *))
           alex:non-negative-fixnum alex:non-negative-fixnum
-          alex:non-negative-fixnum alex:non-negative-fixnum
-          alex:non-negative-fixnum alex:non-negative-fixnum
           (sera:-> (bit bit) (values boolean &optional)))
          (values boolean &optional))
 (declaim (inline kernel-some))
-(defun kernel-some (kernel array i j kh kw h w fn)
-  (declare (optimize (speed 3)))
-  (let ((kh/2 (floor kh 2))
-        (kw/2 (floor kw 2)))
+(defun kernel-some (kernel array i j fn)
+  (let* ((kh (array-dimension kernel 0))
+         (kw (array-dimension kernel 1))
+         (kh/2 (floor kh 2))
+         (kw/2 (floor kw 2)))
     (loop for k fixnum below kh do
           (loop for l fixnum below kw do
                 (when (funcall fn
                                (aref kernel k l)
                                (aref array
-                                     (mod (+ i kh/2 (- k))  h)
-                                     (mod (+ j kw/2  (- l)) w)))
+                                     (mod (+ i kh/2 (- k)) (array-dimension array 0))
+                                     (mod (+ j kw/2 (- l)) (array-dimension array 1))))
                   (return-from kernel-some t)))))
   nil)
 
@@ -162,16 +161,14 @@ components of an image. COMPONENTS is an array returned by LABEL-COMPONENTS"
                          (result (make-binary-image width height))
                          (image-pixels  (image-pixels image))
                          (result-pixels (image-pixels result)))
-                    (destructuring-bind (se-height se-width)
-                        (array-dimensions structuring-element)
-                      (aops:each-index! result-pixels (i j)
-                        (if (kernel-some structuring-element image-pixels
-                                         i j se-height se-width height width
-                                         (lambda (kernel pixel)
-                                           (declare (type bit kernel pixel))
-                                           (and (not (zerop kernel))
-                                                (,op (zerop pixel)))))
-                            ,succ (- (1- ,succ)))))
+                    (declare (type (simple-array bit (* *)) image-pixels result-pixels))
+                    (aops:each-index! result-pixels (i j)
+                      (if (kernel-some structuring-element image-pixels i j
+                                       (lambda (kernel pixel)
+                                         (declare (type bit kernel pixel))
+                                         (and (not (zerop kernel))
+                                              (,op (zerop pixel)))))
+                          ,succ (- (1- ,succ))))
                     result)))))
   (def-morphological-op erode identity 0
     "Erode binary image. STRUCTURING-ELEMENT is an optional 2D simple
