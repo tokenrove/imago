@@ -289,8 +289,7 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
   (declare (optimize (speed 3)))
   (with-image-definition (image width height pixels)
     (declare (type (simple-array bit (* *)) pixels))
-    (let ((copy (alex:copy-array pixels)))
-      (declare (type (simple-array bit (* *)) copy))
+    (let ((new-pixels (make-array (list height width) :element-type 'bit)))
       (do-image-pixels (image pixel x y)
         (unless (zerop (aref pixels y x))
           (let* ((p1 (aref pixels (mod (+ y -1) height) (mod (+ x -1) width)))
@@ -314,13 +313,14 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
                  (o (if odd-iteration-p
                         (logand p4 (logior (- 1 p5) p3 p2))
                         (logand p8 (logior (- 1 p1) p7 p6)))))
-            (when (and (zerop o) (= c 1) (<= 2 n 3))
-              (setf (aref copy y x) 0)))))
-      (make-binary-image-from-pixels copy))))
+            (setf (aref new-pixels y x)
+                  (if (and (zerop o) (= c 1) (<= 2 n 3)) 0 1)))))
+      (make-binary-image-from-pixels new-pixels))))
 
 (sera:-> thin (binary-image) (values binary-image &optional))
 (defun thin (image)
   "Perform thinning (extracting topological skeleton) of binary image."
+  (declare (optimize (speed 3)))
   (loop with current = image
         for iteration fixnum from 1 by 1
         for next = (thinning-pass current (oddp iteration))
