@@ -212,9 +212,9 @@ array of bits which serves as a structuring element and defaults to
               (car envelope-minima)
             for crossing single-float =
               (/ (- (+ (expt i 2)
-                       (aref array i))
+                       (expt (aref array i) 2))
                     (+ (expt current-minima 2)
-                       (aref array current-minima)))
+                       (expt (aref array current-minima) 2)))
                  (* 2.0 (- i current-minima)))
             while (and envelope-crossing
                        (<= crossing (car envelope-crossing)))
@@ -236,12 +236,11 @@ array of bits which serves as a structuring element and defaults to
               (pop envelope-minima))
          (setf (aref array i)
                (+ (expt (- i (car envelope-minima)) 2)
-                  (aref dist (car envelope-minima))))))
+                  (expt (aref dist (car envelope-minima)) 2)))))
   array)
 
-
-(declaim (inline distance-transform-pass))
-(defun distance-transform-pass (type)
+(declaim (inline distance-transform-pass!))
+(defun distance-transform-pass! (type)
   (declare (type (member :mdt :edt) type))
   (ecase type
     (:mdt #'mdt-pass!)
@@ -258,7 +257,7 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
 (squared Euclidean distance transform)."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
-    (let ((dt-pass (distance-transform-pass type))
+    (let ((dt-pass! (distance-transform-pass! type))
           ;; Initialize the array with distances
           (distances
            (let ((max-dim (expt (max width height) 2)))
@@ -267,17 +266,19 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
-        (funcall dt-pass (make-array width
-                                     :element-type 'single-float
-                                     :displaced-to distances
-                                     :displaced-index-offset (* row width))))
+        ;; MDT-PASS! as the first pass is common for all metrics
+        (mdt-pass! (make-array width
+                               :element-type 'single-float
+                               :displaced-to distances
+                               :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
       (let ((permutation (aops:permute '(1 0) distances)))
         (dotimes (column width)
-          (funcall dt-pass (make-array height
-                                       :element-type 'single-float
-                                       :displaced-to permutation
-                                       :displaced-index-offset (* column height))))
+          (funcall dt-pass!
+                   (make-array height
+                               :element-type 'single-float
+                               :displaced-to permutation
+                               :displaced-index-offset (* column height))))
         (aops:permute '(1 0) permutation)))))
 
 ;; =========
