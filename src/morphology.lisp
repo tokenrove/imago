@@ -244,6 +244,18 @@ array of bits which serves as a structuring element and defaults to
     (:mdt #'mdt-pass!)
     (:edt #'edt-pass!)))
 
+(sera:-> transpose ((simple-array alex:non-negative-fixnum (* *)))
+         (values (simple-array alex:non-negative-fixnum (* *)) &optional))
+(defun transpose (array)
+  (declare (optimize (speed 3)))
+  (let* ((n (array-dimension array 0))
+         (m (array-dimension array 1))
+         (result (make-array (list m n) :element-type 'alex:non-negative-fixnum)))
+    (loop for i fixnum below n do
+          (loop for j fixnum below m do
+                (setf (aref result j i) (aref array i j))))
+    result))
+
 (sera:-> distance-transform
          (image &key (:type symbol))
          (values (simple-array alex:non-negative-fixnum (* *)) &optional))
@@ -269,14 +281,14 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
                                :displaced-to distances
                                :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
-      (let ((permutation (aops:permute '(1 0) distances)))
+      (let ((transposition (transpose distances)))
         (dotimes (column width)
           (funcall dt-pass!
                    (make-array height
                                :element-type 'alex:non-negative-fixnum
-                               :displaced-to permutation
+                               :displaced-to transposition
                                :displaced-index-offset (* column height))))
-        (aops:permute '(1 0) permutation)))))
+        (transpose transposition)))))
 
 ;; =========
 ;; Thinning
