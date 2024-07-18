@@ -183,10 +183,9 @@ array of bits which serves as a structuring element and defaults to
 ;; Distance transform
 ;; ====================
 (sera:-> mdt-pass!
-         ((array single-float (*)))
-         (values (array single-float (*)) &optional))
+         ((array alex:non-negative-fixnum (*)))
+         (values (array alex:non-negative-fixnum (*)) &optional))
 (defun mdt-pass! (array)
-  (declare (type (array single-float (*)) array))
   (let ((length (length array)))
     (loop for i from 1 below length do
       (setf (aref array i)
@@ -199,10 +198,9 @@ array of bits which serves as a structuring element and defaults to
     array))
 
 (sera:-> edt-pass!
-         ((array single-float (*)))
-         (values (array single-float (*)) &optional))
+         ((array alex:non-negative-fixnum (*)))
+         (values (array alex:non-negative-fixnum (*)) &optional))
 (defun edt-pass! (array)
-  (declare (type (array single-float (*)) array))
   (let ((length (length array))
         (envelope-minima (list 0))
         envelope-crossing)
@@ -248,27 +246,26 @@ array of bits which serves as a structuring element and defaults to
 
 (sera:-> distance-transform
          (image &key (:type symbol))
-         (values (simple-array single-float (* *)) &optional))
+         (values (simple-array alex:non-negative-fixnum (* *)) &optional))
 (defun distance-transform (image &key (type :edt))
   "Perform distance transform on a binary image. Every 1 is replaced
-with 0f0 and every 0 is replaced with distance to the closest 1.
+with 0 and every 0 is replaced with distance to the closest 1.
 
 TYPE can be either :MDT (Manhattan distance transform) or :EDT
-(squared Euclidean distance transform)."
+(squared Euclidean distance)."
   (declare (type binary-image image))
   (with-image-definition (image width height pixels)
     (let ((dt-pass! (distance-transform-pass! type))
           ;; Initialize the array with distances
           (distances
-           (let ((max-dim (expt (max width height) 2)))
-             (aops:vectorize* 'single-float (pixels)
-               (* (- 1.0 pixels) max-dim)))))
+           (aops:vectorize* 'alex:non-negative-fixnum (pixels)
+             (* (- 1 pixels) most-positive-fixnum))))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
         ;; MDT-PASS! as the first pass is common for all metrics
         (mdt-pass! (make-array width
-                               :element-type 'single-float
+                               :element-type 'alex:non-negative-fixnum
                                :displaced-to distances
                                :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
@@ -276,7 +273,7 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
         (dotimes (column width)
           (funcall dt-pass!
                    (make-array height
-                               :element-type 'single-float
+                               :element-type 'alex:non-negative-fixnum
                                :displaced-to permutation
                                :displaced-index-offset (* column height))))
         (aops:permute '(1 0) permutation)))))
