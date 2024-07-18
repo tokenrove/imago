@@ -205,36 +205,34 @@ array of bits which serves as a structuring element and defaults to
         (envelope-minima (list 0))
         envelope-crossing)
     (loop for i fixnum from 1 below length do
-         (loop
-            for current-minima fixnum =
-              (car envelope-minima)
-            for crossing single-float =
-              (/ (- (+ (expt i 2)
-                       (expt (aref array i) 2))
-                    (+ (expt current-minima 2)
-                       (expt (aref array current-minima) 2)))
-                 (* 2.0 (- i current-minima)))
-            while (and envelope-crossing
-                       (<= crossing (car envelope-crossing)))
-            do
-              (pop envelope-crossing)
-              (pop envelope-minima)
-            finally
-              (push i envelope-minima)
-              (push crossing envelope-crossing)))
-    (loop
-       with dist              = (copy-seq array)
-       with envelope-minima   = (reverse envelope-minima)
-       with envelope-crossing = (reverse envelope-crossing)
-       for i fixnum below length do
-         (loop while (and envelope-crossing
-                          (< (car envelope-crossing) i))
-            do
-              (pop envelope-crossing)
-              (pop envelope-minima))
-         (setf (aref array i)
-               (+ (expt (- i (car envelope-minima)) 2)
-                  (expt (aref dist (car envelope-minima)) 2)))))
+          (loop for current-minima fixnum =
+                (car envelope-minima)
+                for crossing single-float =
+                (/ (- (+ (expt i 2)
+                         (expt (aref array i) 2))
+                      (+ (expt current-minima 2)
+                         (expt (aref array current-minima) 2)))
+                   (* 2.0 (- i current-minima)))
+                while (and envelope-crossing
+                           (<= crossing (car envelope-crossing)))
+                do
+                (pop envelope-crossing)
+                (pop envelope-minima)
+                finally
+                (push i envelope-minima)
+                (push crossing envelope-crossing)))
+    (loop with dist              = (copy-seq array)
+          with envelope-minima   = (reverse envelope-minima)
+          with envelope-crossing = (reverse envelope-crossing)
+          for i fixnum below length do
+          (loop while (and envelope-crossing
+                           (< (car envelope-crossing) i))
+                do
+                (pop envelope-crossing)
+                (pop envelope-minima))
+          (setf (aref array i)
+                (+ (expt (- i (car envelope-minima)) 2)
+                   (expt (aref dist (car envelope-minima)) 2)))))
   array)
 
 (declaim (inline distance-transform-pass!))
