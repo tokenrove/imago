@@ -27,7 +27,7 @@
   :description "Image manipulation library"
   :author "Matthieu Villeneuve <matthieu.villeneuve@free.fr>"
   :license "LLGPL"
-  :version "0.10.0"
+  :version "0.11.0"
   :depends-on (:zlib
                :cl-jpeg
                :alexandria
@@ -67,7 +67,7 @@
 
 (defsystem :imago/tests
   :name :imago/tests
-  :version "0.10.0"
+  :version "0.11.0"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :fiveam)
