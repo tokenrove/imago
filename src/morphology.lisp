@@ -296,6 +296,9 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
 ;; =========
 ;; Thinning
 ;; =========
+;;
+;; Zicheng Guo & Richard W. Hall
+;; https://dl.acm.org/doi/pdf/10.1145/62065.62074
 (sera:-> thinning-pass ((simple-array bit (* *)) boolean)
          (values (simple-array bit (* *)) boolean &optional))
 (defun thinning-pass (pixels odd-iteration-p)
