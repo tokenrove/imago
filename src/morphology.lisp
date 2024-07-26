@@ -299,9 +299,9 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
 ;;
 ;; Zicheng Guo & Richard W. Hall
 ;; https://dl.acm.org/doi/pdf/10.1145/62065.62074
-(sera:-> thinning-pass ((simple-array bit (* *)) boolean)
+(sera:-> thinning-pass-guo ((simple-array bit (* *)) boolean)
          (values (simple-array bit (* *)) boolean &optional))
-(defun thinning-pass (pixels odd-iteration-p)
+(defun thinning-pass-guo (pixels odd-iteration-p)
   (declare (optimize (speed 3)))
   (let* ((height (array-dimension pixels 0))
          (width  (array-dimension pixels 1))
@@ -336,13 +336,66 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
               (setf (aref new-pixels y x) 1)))))
     (values new-pixels changed)))
 
-(sera:-> thin (binary-image) (values binary-image &optional))
-(defun thin (image)
+;; Zhang & Suen
+;; https://dl.acm.org/doi/10.1145/357994.358023
+(sera:-> thinning-pass-zhang ((simple-array bit (* *)) boolean)
+         (values (simple-array bit (* *)) boolean &optional))
+(defun thinning-pass-zhang (pixels odd-iteration-p)
+  (declare (optimize (speed 3)))
+  (let* ((height (array-dimension pixels 0))
+         (width  (array-dimension pixels 1))
+         (new-pixels (make-array (list height width) :element-type 'bit))
+         (changed nil))
+    (do-rectangle ((y x) (height width))
+      (unless (zerop (aref pixels y x))
+        (let* ((p2 (aref pixels (mod (+ y -1) height) (mod (+ x  0) width)))
+               (p3 (aref pixels (mod (+ y -1) height) (mod (+ x +1) width)))
+               (p4 (aref pixels (mod (+ y  0) height) (mod (+ x +1) width)))
+               (p5 (aref pixels (mod (+ y +1) height) (mod (+ x +1) width)))
+               (p6 (aref pixels (mod (+ y +1) height) (mod (+ x  0) width)))
+               (p7 (aref pixels (mod (+ y +1) height) (mod (+ x -1) width)))
+               (p8 (aref pixels (mod (+ y  0) height) (mod (+ x -1) width)))
+               (p9 (aref pixels (mod (+ y -1) height) (mod (+ x -1) width)))
+
+               (b (+ p2 p3 p4 p5 p6 p7 p8 p9))
+               (a (+ (if (and (= p2 0) (= p3 1)) 1 0)
+                     (if (and (= p3 0) (= p4 1)) 1 0)
+                     (if (and (= p4 0) (= p5 1)) 1 0)
+                     (if (and (= p5 0) (= p6 1)) 1 0)
+                     (if (and (= p6 0) (= p7 1)) 1 0)
+                     (if (and (= p7 0) (= p8 1)) 1 0)
+                     (if (and (= p8 0) (= p9 1)) 1 0)
+                     (if (and (= p9 0) (= p2 1)) 1 0)))
+               (c1 (if odd-iteration-p
+                       (zerop (logand p2 p4 p6))
+                       (zerop (logand p2 p4 p8))))
+               (c2 (if odd-iteration-p
+                       (zerop (logand p4 p6 p8))
+                       (zerop (logand p2 p6 p8)))))
+
+          (if (and (<= 2 b 6) (= a 1) c1 c2)
+              (setf (aref new-pixels y x) 0
+                    changed t)
+              (setf (aref new-pixels y x) 1)))))
+    (values new-pixels changed)))
+
+(deftype thinning-type () '(member :guo :zhang))
+
+(sera:-> thinning-pass ((simple-array bit (* *)) boolean thinning-type)
+         (values (simple-array bit (* *)) boolean &optional))
+(defun thinning-pass (pixels odd-iteration-p type)
+  (ecase type
+    (:zhang (thinning-pass-zhang pixels odd-iteration-p))
+    (:guo   (thinning-pass-guo   pixels odd-iteration-p))))
+
+(sera:-> thin (binary-image &optional thinning-type)
+         (values binary-image &optional))
+(defun thin (image &optional (type :zhang))
   "Perform thinning (extracting topological skeleton) of binary image."
   (declare (optimize (speed 3)))
   (labels ((%go (pixels odd-iteration-p)
              (multiple-value-bind (pixels changedp)
-                 (thinning-pass pixels odd-iteration-p)
+                 (thinning-pass pixels odd-iteration-p type)
                (if changedp (%go pixels (not odd-iteration-p)) pixels))))
     (make-binary-image-from-pixels
      (%go (image-pixels image) t))))
