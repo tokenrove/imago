@@ -255,11 +255,12 @@ array of bits which serves as a structuring element and defaults to
     result))
 
 (sera:-> distance-transform
-         (binary-image &key (:type symbol))
+         (binary-image &key (:type symbol) (:feature bit))
          (values (simple-array alex:non-negative-fixnum (* *)) &optional))
-(defun distance-transform (image &key (type :edt))
-  "Perform distance transform on a binary image. Every 1 is replaced
-with 0 and every 0 is replaced with distance to the closest 1.
+(defun distance-transform (image &key (type :edt) (feature 1))
+  "Perform distance transform on a binary image. A distance to the
+closest pixels with the value FEATURE is calculate for each pixels
+in the image.
 
 TYPE can be either :MDT (Manhattan distance transform) or :EDT
 (squared Euclidean distance)."
@@ -272,7 +273,7 @@ TYPE can be either :MDT (Manhattan distance transform) or :EDT
       (map-into (aops:flatten distances)
                 (lambda (x)
                   (declare (type bit x))
-                  (* (- (1- x)) most-positive-fixnum))
+                  (if (= x feature) 0 most-positive-fixnum))
                 (aops:flatten pixels))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
