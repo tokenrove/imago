@@ -81,6 +81,13 @@ generalized variable corresponding to the pixel color."
              (declare (type image-index ,x))
              ,@body))))))
 
+(defmacro do-rectangle (((i j) (n m)) &body body)
+  `(dotimes (,i ,n)
+     (declare (type image-index ,i))
+     (dotimes (,j ,m)
+       (declare (type image-index ,j))
+       ,@body)))
+
 (defmacro do-region-pixels ((image color x y
                              region-x region-y region-width region-height)
                             &body body)
