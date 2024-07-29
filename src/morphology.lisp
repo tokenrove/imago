@@ -182,6 +182,15 @@ array of bits which serves as a structuring element and defaults to
 ;; ====================
 ;; Distance transform
 ;; ====================
+;; Meijster et al.
+;; A General Algorithm For Computing Distance Transforms In Linear Time February 2002
+;; DOI:10.1007/0-306-47025-X_36
+;;
+;; Pedro F. Felzenszwalb and Daniel P. Huttenlocher
+;; Distance Transforms of Sampled Functions
+;; DOI: 10.4086/toc.2012.v008a019
+
+
 (deftype dt-helper ()
   '(sera:-> ((array alex:non-negative-fixnum (*))
              alex:non-negative-fixnum
