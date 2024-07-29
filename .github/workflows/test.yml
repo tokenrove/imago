@@ -22,4 +22,4 @@ jobs:
           ros -e '(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)'
       - name: Run tests
         run: |
-          ros -l $GITHUB_WORKSPACE/tests/travis.lisp
+          ros dynamic-space-size=8gb -l $GITHUB_WORKSPACE/tests/travis.lisp
