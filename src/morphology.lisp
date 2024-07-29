@@ -182,10 +182,25 @@ array of bits which serves as a structuring element and defaults to
 ;; ====================
 ;; Distance transform
 ;; ====================
-(sera:-> mdt-pass!
+(deftype dt-helper ()
+  '(sera:-> ((array alex:non-negative-fixnum (*))
+             alex:non-negative-fixnum
+             alex:non-negative-fixnum)
+    (values alex:non-negative-fixnum &optional)))
+
+(sera:-> dropwhile ((sera:-> (t) (values boolean &optional)) list)
+         (values list &optional))
+(defun dropwhile (f list)
+  (cond
+    ((null list) list)
+    ((funcall f (car list))
+     (dropwhile f (cdr list)))
+    (t list)))
+
+(sera:-> pass1!
          ((array alex:non-negative-fixnum (*)))
          (values (array alex:non-negative-fixnum (*)) &optional))
-(defun mdt-pass! (array)
+(defun pass1! (array)
   (let ((length (length array)))
     (loop for i from 1 below length do
       (setf (aref array i)
@@ -197,50 +212,66 @@ array of bits which serves as a structuring element and defaults to
                  (aref array i))))
     array))
 
-(sera:-> edt-pass!
-         ((array alex:non-negative-fixnum (*)))
+;; Better to use FOLDL from stateless-iterators, but it's not in quicklisp
+(sera:-> pass2! ((array alex:non-negative-fixnum (*)) dt-helper dt-helper)
          (values (array alex:non-negative-fixnum (*)) &optional))
-(defun edt-pass! (array)
-  (let ((length (length array))
-        (envelope-minima (list 0))
-        envelope-crossing)
-    (loop for i fixnum from 1 below length do
-          (loop for current-minima fixnum =
-                (car envelope-minima)
-                for crossing single-float =
-                (/ (- (+ (expt i 2)
-                         (expt (aref array i) 2))
-                      (+ (expt current-minima 2)
-                         (expt (aref array current-minima) 2)))
-                   (* 2.0 (- i current-minima)))
-                while (and envelope-crossing
-                           (<= crossing (car envelope-crossing)))
-                do
-                (pop envelope-crossing)
-                (pop envelope-minima)
-                finally
-                (push i envelope-minima)
-                (push crossing envelope-crossing)))
-    (loop with dist              = (copy-seq array)
-          with envelope-minima   = (reverse envelope-minima)
-          with envelope-crossing = (reverse envelope-crossing)
-          for i fixnum below length do
-          (loop while (and envelope-crossing
-                           (< (car envelope-crossing) i))
-                do
-                (pop envelope-crossing)
-                (pop envelope-minima))
+(defun pass2! (array f sep)
+  (let ((sp (list (cons 0 0))))
+    (loop for i fixnum from 1 below (length array)
+          for %sp = (dropwhile
+                     (lambda (point)
+                       (let ((f1 (funcall f array (cdr point) (car point)))
+                             (f2 (funcall f array (cdr point) i)))
+                         (> f1 f2)))
+                     sp)
+          do
+          (setq sp
+                (if (null %sp)
+                    (list (cons i 0))
+                    (let ((w (1+ (funcall sep array (caar %sp) i))))
+                      (if (< w (length array))
+                        (cons (cons i w) %sp) %sp)))))
+    (loop with copy = (copy-seq array)
+          for i fixnum from (1- (length array)) downto 0 do
           (setf (aref array i)
-                (+ (expt (- i (car envelope-minima)) 2)
-                   (expt (aref dist (car envelope-minima)) 2)))))
+                (funcall f copy i (caar sp)))
+          (when (= i (cdar sp))
+            (pop sp))))
   array)
 
-(declaim (inline distance-transform-pass!))
-(defun distance-transform-pass! (type)
-  (declare (type (member :mdt :edt) type))
+(declaim (ftype dt-helper distance-edt distance-cdt sep-edt sep-cdt))
+
+(defun distance-cdt (array x i)
+  (max (aref array i)
+       (abs (- x i))))
+
+(defun distance-edt (array x i)
+  (+ (expt (aref array i) 2)
+     (expt (- x i) 2)))
+
+(defun sep-cdt (array i u)
+  (if (<= (aref array i)
+          (aref array u))
+      (max (+ i (aref array u))
+           (floor (+ i u) 2))
+      (min (- u (aref array i))
+           (floor (+ i u) 2))))
+
+(defun sep-edt (array i u)
+  (nth-value
+   0 (floor
+      (- (+ (expt u 2)
+            (expt (aref array u) 2))
+         (+ (expt i 2)
+            (expt (aref array i) 2)))
+      (* 2 (- u i)))))
+
+(defun choose-pass2 (type)
+  (declare (type (member :cdt :mdt :edt) type))
   (ecase type
-    (:mdt #'mdt-pass!)
-    (:edt #'edt-pass!)))
+    (:mdt #'pass1!)
+    (:cdt (lambda (array) (pass2! array #'distance-cdt #'sep-cdt)))
+    (:edt (lambda (array) (pass2! array #'distance-edt #'sep-edt)))))
 
 (sera:-> transpose ((simple-array alex:non-negative-fixnum (* *)))
          (values (simple-array alex:non-negative-fixnum (* *)) &optional))
@@ -262,31 +293,31 @@ array of bits which serves as a structuring element and defaults to
 closest pixels with the value FEATURE is calculate for each pixels
 in the image.
 
-TYPE can be either :MDT (Manhattan distance transform) or :EDT
-(squared Euclidean distance)."
+TYPE can be either :MDT (Manhattan distance transform), :CDT
+(Chessboard distance transform) or :EDT (squared Euclidean distance)."
   (declare (optimize (speed 3)))
   (with-image-definition (image width height pixels)
-    (let ((dt-pass! (distance-transform-pass! type))
+    (let ((pass2! (choose-pass2 type))
           (distances (make-array (array-dimensions pixels)
                                  :element-type 'alex:non-negative-fixnum)))
       ;; Initialize the array with distances
       (map-into (aops:flatten distances)
                 (lambda (x)
                   (declare (type bit x))
-                  (if (= x feature) 0 most-positive-fixnum))
+                  ;; FIXME: 2^30 is enough for pictures of size 30000x30000
+                  (if (= x feature) 0 (ash 1 30)))
                 (aops:flatten pixels))
       ;; Walk through the rows of the array and calculate MDT for each
       ;; row separately.
       (dotimes (row height)
-        ;; MDT-PASS! as the first pass is common for all metrics
-        (mdt-pass! (make-array width
-                               :element-type 'alex:non-negative-fixnum
-                               :displaced-to distances
-                               :displaced-index-offset (* row width))))
+        (pass1! (make-array width
+                            :element-type 'alex:non-negative-fixnum
+                            :displaced-to distances
+                            :displaced-index-offset (* row width))))
       ;; Now walk through the columns. Have to permute the array for that :(
       (let ((transposition (transpose distances)))
         (dotimes (column width)
-          (funcall dt-pass!
+          (funcall pass2!
                    (make-array height
                                :element-type 'alex:non-negative-fixnum
                                :displaced-to transposition

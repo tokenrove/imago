@@ -233,20 +233,31 @@
     ;; Count number of spheres
     (is (= (reduce #'max (aops:flatten components)) 1))))
 
+(defun norm-edt (i j)
+  (+ (expt i 2)
+     (expt j 2)))
+
+(defun norm-mdt (i j)
+  (+ (abs i) (abs j)))
+
+(defun norm-cdt (i j)
+  (max (abs i) (abs j)))
+
+;; TODO: Randomize
 (test distance-transform-with-two-feature-pixels
   (let ((image (make-instance 'binary-image
-                              :width 20
-                              :height 20))
+                              :width  5001
+                              :height 5001))
         indices)
     (do-image-pixels (image color x y)
       (push (cons y x) indices))
 
-    (setf (image-pixel image  0  0) 1
-          (image-pixel image 19 19) 1)
+    (setf (image-pixel image    0    0) 1
+          (image-pixel image 5000 5000) 1)
 
     (loop
-       for type in '(:mdt :edt)
-       for dist in (list #'abs #'imago::square)
+       for type in '(:mdt :edt :cdt)
+       for norm in (list #'norm-mdt #'norm-edt #'norm-cdt)
        for dt = (distance-transform image :type type)
        do
          (is-true
@@ -255,8 +266,6 @@
              (destructuring-bind (i . j)
                  index
                (= (aref dt i j)
-                  (min (+ (funcall dist i)
-                          (funcall dist j))
-                       (+ (funcall dist (- 19 i))
-                          (funcall dist (- 19 j)))))))
+                  (min (funcall norm i j)
+                       (funcall norm (- 5000 i) (- 5000 j))))))
            indices)))))
