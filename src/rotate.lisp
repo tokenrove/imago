@@ -81,7 +81,8 @@ gives clockwise rotation)."
 
 (defgeneric make-default-background-color (image)
   (:method ((image rgb-image)) (make-color 0 0 0 0))
-  (:method ((image grayscale-image)) (make-gray 0 0)))
+  (:method ((image grayscale-image)) (make-gray 0 0))
+  (:method ((image binary-image)) 0))
 
 (defun rotate-dimensions (dimensions degree)
   (case degree
