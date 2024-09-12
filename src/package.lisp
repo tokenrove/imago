@@ -16,7 +16,7 @@
                     (:flex :flexi-streams)
                     (:bit  :imago-bit-io))
   (:export #:image
-           #:image-width #:image-height
+           #:image-width #:image-height #:image-dimensions
            #:image-plane-count #:image-colormap
            #:image-pixels #:image-pixel
            #:rgb-image #:indexed-image #:grayscale-image #:planar-image #:binary-image

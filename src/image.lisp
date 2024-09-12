@@ -159,16 +159,22 @@ the :WIDTH and :HEIGHT keyword parameters."))
 
 ;; Widht and height readers
 
-(sera:-> image-width  (image) (values image-dimension &optional))
 (sera:-> image-height (image) (values image-dimension &optional))
-
+(declaim (inline image-height))
 (defun image-height (image)
-  (declare (type image image))
   (array-dimension (image-pixels image) 0))
 
+(sera:-> image-width  (image) (values image-dimension &optional))
+(declaim (inline image-width))
 (defun image-width (image)
   (declare (type image image))
   (array-dimension (image-pixels image) 1))
+
+(sera:-> image-dimensions (image)
+         (values (cons image-dimension (cons image-dimension null)) &optional))
+(declaim (inline image-dimensions))
+(defun image-dimensions (image)
+  (array-dimensions (image-pixels image)))
 
 (defmethod print-object ((object image) stream)
   (print-unreadable-object (object stream :type t :identity t)
