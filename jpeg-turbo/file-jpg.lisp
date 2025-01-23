@@ -47,8 +47,7 @@ to jpeg images"))
   "Read grayscale of RGB jpeg image from a file FILESPEC."
   (declare (type (or string pathname) filespec))
   (with-open-file (input filespec :element-type '(unsigned-byte 8))
-    (let ((array (make-array (file-length input)
-                             :element-type '(unsigned-byte 8))))
+    (let ((array (cffi:make-shareable-byte-vector (file-length input))))
       (read-sequence array input)
       (read-jpg-from-octets array))))
 
@@ -64,7 +63,7 @@ grayscale images."
          (width (imago:image-width image))
          (height (imago:image-height image))
          (length (* ncomp width height))
-         (data (make-array length :element-type '(unsigned-byte 8))))
+         (data (cffi:make-shareable-byte-vector length)))
     (dotimes (idx (* height width))
       (imago::write-jpg-pixel image data idx))
     (with-compressor (handle)
