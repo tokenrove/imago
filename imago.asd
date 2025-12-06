@@ -95,6 +95,16 @@
   :components ((:file "package")
                (:file "file-png" :depends-on ("package"))))
 
+(defsystem :imago/libheif
+  :name :imago/libheif
+  :version "0.1"
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago :cl-libheif :float-features :serapeum)
+  :pathname "libheif"
+  :components ((:file "package")
+               (:file "file-heic" :depends-on ("package"))))
+
 ;; An old name of imago/pngio for compatibility
 (defsystem :imago/pngload
   :name :imago/pngload
