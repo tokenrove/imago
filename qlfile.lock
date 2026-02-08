@@ -18,10 +18,6 @@
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2017-04-03"))
-("cl-jpeg" .
- (:class qlot/source/ql:source-ql
-  :initargs (:%version :latest)
-  :version "ql-2023-02-14"))
 ("array-operations" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
@@ -54,3 +50,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "shamazmazum/cl-libheif" :ref nil :branch nil :tag "v1.0.1")
   :version "github-6587cf1ca06996e29efa29afff068e670e351c46"))
+("cl-jpeg" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "sharplispers/cl-jpeg" :ref nil :branch nil :tag nil)
+  :version "github-bef2c3bb64dd19cb31c26338dcbecbf2542a2619"))

@@ -2,7 +2,6 @@ ql trivial-gray-streams
 ql alexandria
 ql serapeum
 ql zlib
-ql cl-jpeg
 ql array-operations
 ql flexi-streams
 ql fiveam
@@ -11,3 +10,4 @@ ql pngload
 ql zpng
 ql float-features
 github shamazmazum/cl-libheif :tag v1.0.1
+github sharplispers/cl-jpeg
