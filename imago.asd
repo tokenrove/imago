@@ -34,7 +34,9 @@
                :serapeum
                :array-operations
                :imago/bit-io
-               :flexi-streams)
+               :flexi-streams
+               :pngload
+               :zpng)
   :pathname "src"
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
@@ -42,7 +44,6 @@
                (:file "color" :depends-on ("package"))
                (:file "image" :depends-on ("package"))
                (:file "image-utilities" :depends-on ("image" "color" "utilities"))
-               (:file "crc32" :depends-on ("package"))
                (:file "drawing" :depends-on ("image-utilities" "color"))
                (:file "convert" :depends-on ("image" "color"))
                (:file "convolve" :depends-on ("image" "color"))
@@ -54,10 +55,10 @@
                (:file "operations" :depends-on ("image" "color"))
                (:file "downscale" :depends-on ("image" "color"))
                (:file "file" :depends-on ("conditions"))
-               (:file "file-png" :depends-on ("image" "color" "crc32" "file"))
                (:file "file-pnm" :depends-on ("image" "color" "file"))
                (:file "file-tga" :depends-on ("image" "color" "file"))
-               (:file "file-jpg" :depends-on ("image" "color" "file")))
+               (:file "file-jpg" :depends-on ("image" "color" "file"))
+               (:file "file-png" :depends-on ("image" "color" "file")))
   :in-order-to ((test-op (load-op "imago/tests")))
   :perform (test-op (op system)
                     (declare (ignore op system))
@@ -83,16 +84,6 @@
   :components ((:file "package")
                (:file "file-jpg" :depends-on ("package"))))
 
-(defsystem :imago/pngio
-  :name :imago/pngio
-  :version "0.1"
-  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
-  :license "LLGPL"
-  :depends-on (:imago :pngload :zpng)
-  :pathname "pngio"
-  :components ((:file "package")
-               (:file "file-png" :depends-on ("package"))))
-
 (defsystem :imago/libheif
   :name :imago/libheif
   :version "0.1"
@@ -102,14 +93,6 @@
   :pathname "libheif"
   :components ((:file "package")
                (:file "file-heic" :depends-on ("package"))))
-
-;; An old name of imago/pngio for compatibility
-(defsystem :imago/pngload
-  :name :imago/pngload
-  :version "0.1"
-  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
-  :license "LLGPL"
-  :depends-on (:imago/pngio))
 
 (defsystem :imago/jupyter
   :name :imago/jupyter

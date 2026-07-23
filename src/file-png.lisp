@@ -1,308 +1,109 @@
-;;; IMAGO library
-;;; PNG file handling
-;;;
-;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
-;;;
-;;; The authors grant you the rights to distribute
-;;; and use this software as governed by the terms
-;;; of the Lisp Lesser GNU Public License
-;;; (http://opensource.franz.com/preamble.html),
-;;; known as the LLGPL.
-
-
 (in-package :imago)
 
+(defgeneric translate-png-to-imago-format (image color-type)
+  (:documentation "Convert IMAGE from pngload format to imago format"))
 
-(defparameter +png-signature+ '#(137 80 78 71 13 10 26 10))
-
-(defparameter +png-ihdr-chunk-type+ #x49484452)
-(defparameter +png-idat-chunk-type+ #x49444154)
-(defparameter +png-plte-chunk-type+ #x504C5445)
-(defparameter +png-iend-chunk-type+ #x49454E44)
-
-(defstruct png-descriptor
-  width height
-  depth color-type
-  compression-method filter-method interlace-method)
+;; KLUDGE: pngload does not signal its own conditions most of the time.
+;; Re-signal decode-error if something like simple-error is signalled
+(defun read-png-safely (stream)
+  (handler-case
+      (pngload:load-stream stream)
+    ((and error (not pngload::png-error)) ()
+      (error 'decode-error
+             :format-control "Invalid PNG stream: ~a"
+             :format-arguments (list stream)))))
 
 (defun read-png-from-stream (stream)
-  "Read png image from a stream of unsigned octets."
-  (read-png-signature stream)
-  (let ((descriptor nil)
-        (data (make-array (file-length stream)
-                          :element-type '(unsigned-byte 8)
-                          :fill-pointer 0))
-        (data-index 0)
-        (colormap nil))
-    (loop for chunk = (read-png-chunk stream)
-          until (= (car chunk) +png-iend-chunk-type+)
-          do (cond ((= (car chunk) +png-ihdr-chunk-type+)
-                    (setf descriptor (decode-png-descriptor (cdr chunk))))
-                   ((= (car chunk) +png-plte-chunk-type+)
-                    (setf colormap (decode-png-colormap (cdr chunk))))
-                   ((= (car chunk) +png-idat-chunk-type+)
-                    (let* ((chunk-data (cdr chunk))
-                           (chunk-length (length chunk-data)))
-                      (incf (fill-pointer data) chunk-length)
-                      (replace data chunk-data :start1 data-index)
-                      (incf data-index chunk-length)))))
-    (when (or (/= (png-descriptor-compression-method descriptor) 0)
-              (/= (png-descriptor-filter-method descriptor) 0)
-              (/= (png-descriptor-interlace-method descriptor) 0))
-      (error "PNG: Format not recognized"))
-    (let* ((raw-data (zlib:uncompress data))
-           (pixels (decode-png-image descriptor raw-data)))
-      (ecase (png-descriptor-color-type descriptor)
-        ((2 6) (make-instance 'rgb-image :pixels pixels))
-        ((0 4) (make-instance 'grayscale-image :pixels pixels))
-        ((3) (make-instance 'indexed-image
-                            :pixels pixels
-                            :colormap colormap))))))
+  (let ((image (read-png-safely stream)))
+    ;; < 8 bits per color can appear in palettes
+    (when (> (pngload:bit-depth image) 8)
+      (error 'decode-error
+             :format-control "Only 8 bits per color is supported"))
+    (translate-png-to-imago-format
+     image (pngload:color-type image))))
 
 (def-reader-from-file read-png read-png-from-stream)
 
-(defun read-png-signature (stream)
-  (let ((bytes (read-byte-array stream (length +png-signature+))))
-    (when (mismatch bytes +png-signature+ :test #'=)
-      (error "PNG: Invalid signature"))))
+(macrolet
+    ((def-method (png-color-type pixel-type make-pixel make-image shape
+                                 &optional color-components)
+       `(defmethod translate-png-to-imago-format (image (color-type (eql ,png-color-type)))
+          (declare (optimize (speed 3)))
+          (let* ((data (pngload:data image))
+                 (width (pngload:width image))
+                 (height (pngload:height image))
+                 ;; Indexed images are translated to 8 bit images by pngload
+                 (depth (if (eq ,png-color-type :indexed-colour)
+                            8 (pngload:bit-depth image)))
+                 (pixels (make-array (list height width)
+                                     :element-type ',pixel-type))
+                 (color-components (if (= (array-rank data) 2) 1
+                                       (array-dimension data 2))))
+            (declare (type (simple-array (unsigned-byte 8) ,shape) data)
+                     (type (integer 1 8) depth)
+                     (ignorable color-components))
+            (loop for i fixnum below (array-total-size pixels) do
+                  (setf (row-major-aref pixels i)
+                        ,(if color-components
+                             `(,make-pixel
+                               ,@(loop for j below color-components collect
+                                       `(convert-color-to-imago-format
+                                         (row-major-aref data (+ (* i ,color-components) ,j))
+                                         depth)))
+                             `(apply #',make-pixel
+                                     (loop for j fixnum below color-components collect
+                                           (convert-color-to-imago-format
+                                            (row-major-aref data (+ (* i color-components) j))
+                                            depth))))))
+            (,make-image pixels)))))
+  (def-method :greyscale grayscale-pixel make-gray
+              make-grayscale-image-from-pixels (* *) 1)
+  (def-method :truecolour rgb-pixel make-color
+              make-rgb-image-from-pixels (* * *) 3)
+  (def-method :greyscale-alpha grayscale-pixel make-gray
+              make-grayscale-image-from-pixels (* * *) 2)
+  (def-method :truecolour-alpha rgb-pixel make-color
+              make-rgb-image-from-pixels (* * *) 4)
+  ;; Indexed color is translated to RGB or RGBA by pngload
+  (def-method :indexed-colour rgb-pixel make-color
+              make-rgb-image-from-pixels (* * *)))
 
-(defun read-png-chunk (stream)
-  (let* ((length (read-msb-integer stream 4))
-         (type (read-msb-integer stream 4))
-         (data (read-byte-array stream length))
-         (crc (read-msb-integer stream 4)))
-    (declare (ignore crc))
-    (cons type data)))
 
-(defun decode-png-descriptor (data)
-  (make-png-descriptor :width (logior (ash (aref data 0) 24)
-                                      (ash (aref data 1) 16)
-                                      (ash (aref data 2) 8)
-                                      (aref data 3))
-                       :height (logior (ash (aref data 4) 24)
-                                       (ash (aref data 5) 16)
-                                   (ash (aref data 6) 8)
-                                   (aref data 7))
-                       :depth (aref data 8)
-                       :color-type (aref data 9)
-                       :compression-method (aref data 10)
-                       :filter-method (aref data 11)
-                       :interlace-method (aref data 12)))
+(defgeneric translate-png-to-zpng-format (image))
 
-(defun decode-png-colormap (data)
-  (let* ((length (floor (length data) 3))
-         (colormap (make-array length)))
-    (loop for i below length
-          do (setf (aref colormap i)
-                   (make-color (aref data (* i 3))
-                               (aref data (+ (* i 3) 1))
-                               (aref data (+ (* i 3) 2)))))
-    colormap))
-
-(defun decode-png-image (descriptor data)
-  (let* ((width (png-descriptor-width descriptor))
-         (height (png-descriptor-height descriptor))
-         (color-type (png-descriptor-color-type descriptor))
-         (depth (png-descriptor-depth descriptor))
-         (samples-per-pixel (png-samples-per-pixel color-type))
-         (samples (make-array (* width height samples-per-pixel)
-                              :element-type '(unsigned-byte 16)))
-         (data-bit-index 0))
-    (loop with samples-index = 0
-          for y below height
-          for filter = (prog1
-                         (read-png-sample data data-bit-index 8)
-                         (incf data-bit-index 8))
-          do (loop for x below (* width samples-per-pixel)
-                   for sample = (prog1
-                                  (read-png-sample data data-bit-index depth)
-                                  (incf data-bit-index depth))
-                   for left = (if (>= x samples-per-pixel)
-                                  (aref samples (- samples-index
-                                                   samples-per-pixel))
-                                  0)
-                   for up = (if (> y 0)
-                                (aref samples
-                                      (- samples-index
-                                         (* width samples-per-pixel)))
-                                0)
-                   for upleft = (if (and (>= x samples-per-pixel) (> y 0))
-                                    (aref samples
-                                          (- samples-index
-                                             (* width samples-per-pixel)
-                                             samples-per-pixel))
-                                    0)
-                   for sample2 = (ecase filter
-                                   (0 sample)
-                                   (1 (mod (+ sample left) 256))
-                                   (2 (mod (+ sample up) 256))
-                                   (3 (mod (+ sample
-                                              (floor (+ up left) 2))
-                                           256))
-                                   (4 (mod (+ sample
-                                              (png-paeth left up upleft))
-                                           256)))
-                   do (setf (aref samples samples-index) sample2)
-                      (incf samples-index))
-             (unless (zerop (mod data-bit-index 8))
-               (incf data-bit-index (- 8 (mod data-bit-index 8)))))
-    (loop with samples-index = 0
-          with pixels = (make-array (list height width)
-                                    :element-type (ecase color-type
-                                                    ((2 6) 'rgb-pixel)
-                                                    ((0 4) 'grayscale-pixel)
-                                                    ((3) 'indexed-pixel)))
-          for y below height
-          do (loop for x below width
-                   do (macrolet ((next-byte ()
-                                 `(convert-color-to-imago-format
-                                   (read-array-element
-                                    samples samples-index)
-                                   depth)))
-                        (setf (aref pixels y x)
-                              (case color-type
-                                (0 (make-gray (next-byte)))
-                                (2 (make-color (next-byte)
-                                               (next-byte)
-                                               (next-byte)))
-                                (3 (read-array-element samples samples-index))
-                                (4 (make-gray (next-byte)
-                                              (next-byte)))
-                                (6 (make-color (next-byte)
-                                               (next-byte)
-                                               (next-byte)
-                                               (next-byte)))))))
-          finally (return pixels))))
-
-(defun png-samples-per-pixel (color-type)
-  (ecase color-type
-    (0 1)
-    (2 3)
-    (3 1)
-    (4 2)
-    (6 4)))
-
-(defun read-png-sample (data bit-index depth)
-  (multiple-value-bind (byte-index bit)
-      (floor bit-index 8)
-    (let ((byte (aref data byte-index)))
-      (ldb (byte depth (- 8 depth bit)) byte))))
-
-(defun png-paeth (a b c)
-  (let* ((p (- (+ a b) c))
-         (pa (abs (- p a)))
-         (pb (abs (- p b)))
-         (pc (abs (- p c))))
-    (cond ((and (<= pa pb) (<= pa pc)) a)
-          ((<= pb pc) b)
-          (t c))))
-
+;; KLUDGE: Here we always write alpha channel
+(macrolet
+    ((def-method (image-type color-type zpng-color-type &rest color-accessors)
+       `(defmethod translate-png-to-zpng-format ((image ,image-type))
+          (declare (optimize (speed 3)))
+          (let* ((imago-pixels (image-pixels image))
+                 (size (array-total-size imago-pixels))
+                 (colors ,(length color-accessors))
+                 (zpng-pixels (make-array (* size colors) :element-type '(unsigned-byte 8))))
+            (declare (type (simple-array ,color-type (* *)) imago-pixels))
+            (loop for i fixnum below size
+                  for pixel fixnum = (row-major-aref imago-pixels i) do
+                  ,@(loop for j from 0 by 1
+                          for accessor in color-accessors collect
+                          `(setf (aref zpng-pixels (+ (* i colors) ,j))
+                                 (,accessor pixel))))
+            (make-instance 'zpng:png
+                           :width  (image-width  image)
+                           :height (image-height image)
+                           :color-type ,zpng-color-type
+                           :image-data zpng-pixels)))))
+  (def-method grayscale-image grayscale-pixel :grayscale-alpha
+    gray-intensity imago:gray-alpha)
+  (def-method rgb-image rgb-pixel :truecolor-alpha
+    color-red color-green color-blue color-alpha))
 
 (defun write-png-to-stream (image stream)
-  (write-png-signature stream)
-  (write-png-header-chunk stream image)
-  (write-png-colormap-chunk stream image)
-  (write-png-data-chunk stream image)
-  (write-png-end-chunk stream)
+  "Write png image to stream using zpng library."
+  (zpng:write-png-stream (translate-png-to-zpng-format image) stream)
   image)
 
 (def-writer-to-file write-png write-png-to-stream ())
 
-(defun write-png-signature (stream)
-  (write-sequence +png-signature+ stream))
-
-(defun write-png-chunk (data type stream)
-  (let ((type-bytes (make-array 4))
-        (crc 0))
-    (loop for i below 4
-          do (setf (aref type-bytes i) (ldb (byte 8 (* 8 (- 3 i))) type)))
-    (setf crc (update-crc32 crc type-bytes))
-    (setf crc (update-crc32 crc data))
-    (write-msb-integer (length data) stream 4)
-    (write-msb-integer type stream 4)
-    (write-sequence data stream)
-    (write-msb-integer crc stream 4)))
-
-(defun write-png-header-chunk (stream image)
-  (let ((data (make-array 13 :element-type '(unsigned-byte 8)))
-        (width (image-width image))
-        (height (image-height image)))
-    (setf (aref data 0) (ldb (byte 8 24) width)
-          (aref data 1) (ldb (byte 8 16) width)
-          (aref data 2) (ldb (byte 8 8) width)
-          (aref data 3) (ldb (byte 8 0) width)
-          (aref data 4) (ldb (byte 8 24) height)
-          (aref data 5) (ldb (byte 8 16) height)
-          (aref data 6) (ldb (byte 8 8) height)
-          (aref data 7) (ldb (byte 8 0) height)
-          (aref data 8) 8
-          (aref data 9) (image-png-color-type image)
-          (aref data 10) 0
-          (aref data 11) 0
-          (aref data 12) 0)
-    (write-png-chunk data +png-ihdr-chunk-type+ stream)))
-
-(defun write-png-end-chunk (stream)
-  (write-png-chunk #() +png-iend-chunk-type+ stream))
-
-(defgeneric write-png-colormap-chunk (stream image))
-
-(defmethod write-png-colormap-chunk (stream (image image)))
-
-(defmethod write-png-colormap-chunk (stream (image indexed-image))
-  (let* ((colormap (image-colormap image))
-         (colormap-length (length colormap))
-         (data (make-array (* 3 colormap-length)
-                           :element-type '(unsigned-byte 8))))
-    (loop for i below colormap-length
-          as color = (aref colormap i)
-          do (setf (aref data (* 3 i)) (color-red color)
-                   (aref data (+ (* 3 i) 1)) (color-green color)
-                   (aref data (+ (* 3 i) 2)) (color-blue color)))
-    (write-png-chunk data +png-plte-chunk-type+ stream)))
-
-(defun write-png-data-chunk (stream image)
-  (let* ((width (image-width image))
-         (height (image-height image))
-         (bytes (make-array (* height (1+ (* width (pixel-size image))))
-                            :element-type '(unsigned-byte 8))))
-    (loop with i = 0
-          for y below height
-          do (setf (aref bytes i) 0)
-             (incf i)
-             (loop for x below width
-                   do (setf i (write-png-pixel-bytes bytes image x y i))))
-    (let ((compressed-bytes (zlib:compress bytes :fixed)))
-      (write-png-chunk compressed-bytes +png-idat-chunk-type+ stream))))
-
-(defgeneric image-png-color-type (image))
-
-(defmethod image-png-color-type ((image rgb-image)) 6)
-
-(defmethod image-png-color-type ((image grayscale-image)) 4)
-
-(defmethod image-png-color-type ((image indexed-image)) 3)
-
-(defgeneric write-png-pixel-bytes (dest image x y index))
-
-(defmethod write-png-pixel-bytes (dest (image rgb-image) x y index)
-  (let ((color (image-pixel image x y)))
-    (setf (aref dest index) (color-red color)
-          (aref dest (+ index 1)) (color-green color)
-          (aref dest (+ index 2)) (color-blue color)
-          (aref dest (+ index 3)) (color-alpha color)))
-  (+ index 4))
-
-(defmethod write-png-pixel-bytes (dest (image grayscale-image) x y index)
-  (let ((gray (image-pixel image x y)))
-    (setf (aref dest index) (gray-intensity gray)
-          (aref dest (1+ index)) (gray-alpha gray)))
-  (+ index 2))
-
-(defmethod write-png-pixel-bytes (dest (image indexed-image) x y index)
-  (setf (aref dest index) (image-pixel image x y))
-  (1+ index))
-
 (register-image-io-functions '("png")
-                             :reader #'read-png
-                             :writer #'write-png)
+ :reader #'read-png
+ :writer #'write-png)
