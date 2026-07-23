@@ -72,14 +72,13 @@
 (test read-write-rgb
   (let ((image (read-image *rgb-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
-          ;; PCX is broken
           '("png" "jpg" "pnm" "tga")
           '(t nil t t))))
 
 (test read-write-grayscale
   (let ((image (read-image *grayscale-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
-          ;; PCX is broken, TGA is not supported
+          ;; TGA is not supported
           '("png" "jpg" "pnm")
           '(t nil t))))
 
