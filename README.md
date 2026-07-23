@@ -2,10 +2,10 @@
 ![CI](https://github.com/tokenrove/imago/workflows/CI/badge.svg)
 
 Imago is an image manipulation library for Common Lisp. It supports images in
-png, pcx, portable bitmap (.pnm), Truevision TGA (.tga) and jpeg formats. You
+png, portable bitmap (.pnm), Truevision TGA (.tga), jpeg and HEIC formats. You
 can read an image with `imago:read-image` and write an image with
-`imago:write-format` where `format` is one of `png`, `pcx`, `pnm`, `tga` or
-`jpg`.
+`imago:write-format` where `format` is one of `png`, `pnm`, `tga`, `jpg` or
+`heic`.
 
 ## Reading from and writing to jpeg files with libjpeg-turbo
 
