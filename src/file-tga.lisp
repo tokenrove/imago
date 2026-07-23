@@ -49,7 +49,7 @@
              (when (zerop alpha-size)
                (do-image-pixels (image pixel x y)
                  (multiple-value-bind (r g b)
-                     (color-rgb pixel)
+                     (color-rgba pixel)
                    (setf pixel (make-color r g b)))))
              image))))))
 

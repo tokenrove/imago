@@ -122,7 +122,7 @@ Most of the examples are taken from
 
 ~~~~{.lisp}
 (do-image-pixels (*image* color x y)
-  (multiple-value-bind (r g b) (color-rgb color)
+  (multiple-value-bind (r g b) (color-rgba color)
     (setf color (make-color b
                             (floor (* g 0.8))
                             r))))
@@ -168,7 +168,7 @@ Most of the examples are taken from
   (let ((image2 (flip nil image :horizontal)))
     (do-image-pixels (image2 color x y)
       (multiple-value-bind (r g b)
-          (color-rgb color)
+          (color-rgba color)
         (setf color (make-color (floor r 3) (floor g 3) (floor b 2)))))
     (let* ((width (image-width image))
            (height (image-height image))

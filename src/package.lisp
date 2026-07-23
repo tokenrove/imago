@@ -34,8 +34,7 @@
            #:set-alpha
 
            #:make-color
-           #:color-red #:color-green #:color-blue #:color-alpha
-           #:color-rgb #:color-argb
+           #:color-red #:color-green #:color-blue #:color-alpha #:color-rgba
            #:color-intensity
            #:invert-color
            #:make-gray

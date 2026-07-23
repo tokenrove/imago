@@ -24,108 +24,105 @@
 (deftype planar-pixel (&optional (plane-count '*))
   `(unsigned-byte ,plane-count))
 
-(declaim (inline make-gray gray-intensity gray-alpha invert-gray)
-         (ftype (sera:-> (grayscale-pixel) (values sera:octet &optional))
-                gray-intensity gray-alpha))
-
-(sera:-> make-gray
-         (sera:octet &optional sera:octet)
-         (values grayscale-pixel &optional))
 (eval-when (:compile-toplevel :load-toplevel :execute)
+  (sera:-> make-gray (sera:octet &optional sera:octet)
+           (values grayscale-pixel &optional))
+  (declaim (inline make-gray))
   (defun make-gray (intensity &optional (alpha #xff))
-    (declare (optimize (speed 3)))
     (logior (ash alpha 8) intensity)))
 
+(sera:-> gray-intensity (grayscale-pixel)
+         (values sera:octet &optional))
+(declaim (inline gray-intensity))
 (defun gray-intensity (gray)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 0) gray))
 
+(sera:-> gray-alpha (grayscale-pixel)
+         (values sera:octet &optional))
+(declaim (inline gray-alpha))
 (defun gray-alpha (gray)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 8) gray))
 
-(sera:-> invert-gray
-         (grayscale-pixel)
+(sera:-> invert-gray (grayscale-pixel)
          (values grayscale-pixel &optional))
 (defun invert-gray (gray)
-  (logior (logand #x00ff
-                  (lognot (logand gray #x00ff)))
-          (logand gray #xff00)))
-
-(declaim (inline make-color color-red color-green color-blue color-alpha
-                 color-rgb color-argb color-intensity invert-color)
-         (ftype (sera:-> (rgb-pixel) (values sera:octet &optional))
-                color-red color-green color-blue color-alpha color-intensity))
+  (declare (optimize (speed 3)))
+  (make-gray
+   (logand (lognot (gray-intensity gray)) #xff)
+   (gray-alpha gray)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
+  (sera:-> make-color (sera:octet sera:octet sera:octet &optional sera:octet)
+           (values rgb-pixel &optional))
+  (declaim (inline make-color))
   (defun make-color (r g b &optional (alpha #xff))
-    (declare (type (unsigned-byte 8) r)
-             (type (unsigned-byte 8) g)
-             (type (unsigned-byte 8) b)
-             (type (unsigned-byte 8) alpha))
-    (the rgb-pixel (logior (ash alpha 24) (ash r 16) (ash g 8) b))))
+    (logior (ash alpha 24) (ash r 16) (ash g 8) b)))
 
+(sera:-> color-red (rgb-pixel)
+         (values sera:octet &optional))
+(declaim (inline color-red))
 (defun color-red (color)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 16) color))
 
+(sera:-> color-green (rgb-pixel)
+         (values sera:octet &optional))
+(declaim (inline color-green))
 (defun color-green (color)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 8) color))
 
+(sera:-> color-blue (rgb-pixel)
+         (values sera:octet &optional))
+(declaim (inline color-blue))
 (defun color-blue (color)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 0) color))
 
+(sera:-> color-alpha (rgb-pixel)
+         (values sera:octet &optional))
+(declaim (inline color-alpha))
 (defun color-alpha (color)
-  (declare (optimize (speed 3)))
   (ldb (byte 8 24) color))
 
-(sera:-> color-rgb
-         (rgb-pixel)
-         (values sera:octet sera:octet
-                 sera:octet &optional))
-(defun color-rgb (color)
-  (values (color-red color)
+(sera:-> color-rgba (rgb-pixel)
+         (values sera:octet sera:octet sera:octet sera:octet &optional))
+(declaim (inline color-rgba))
+(defun color-rgba (color)
+  (values (color-red   color)
           (color-green color)
-          (color-blue color)))
+          (color-blue  color)
+          (color-alpha color)))
 
-(sera:-> color-argb
-         (rgb-pixel)
-         (values sera:octet sera:octet
-                 sera:octet sera:octet
-                 &optional))
-(defun color-argb (color)
-  (values (color-alpha color)
-          (color-red color)
-          (color-green color)
-          (color-blue color)))
-
+(sera:-> color-intensity (rgb-pixel)
+         (values sera:octet &optional))
 (defun color-intensity (color)
   (declare (optimize (speed 3)))
   (multiple-value-bind (r g b)
-      (color-rgb color)
+      (color-rgba color)
     (values
      (floor (+ r g b) 3))))
 
-(sera:-> invert-color
-         (rgb-pixel)
+(sera:-> invert-color (rgb-pixel)
          (values rgb-pixel &optional))
 (defun invert-color (color)
   (declare (optimize (speed 3)))
-  (logior (logand #x00ffffff
-                  (lognot
-                   (logand color #x00ffffff)))
-          (logand color #xff000000)))
+  (flet ((invert (c)
+           (logand (lognot c) #xff)))
+    (declare (inline invert))
+    (multiple-value-bind (r g b a)
+        (color-rgba color)
+      (make-color
+       (invert r)
+       (invert g)
+       (invert b)
+       a))))
 
 (defun closest-colortable-entry (color table)
   (declare (type rgb-pixel color))
   (multiple-value-bind (color-r color-g color-b)
-      (color-rgb color)
+      (color-rgba color)
     (multiple-value-bind (element index score)
         (best-in-array (lambda (c)
                          (multiple-value-bind (r g b)
-                             (color-rgb c)
+                             (color-rgba c)
                            (+ (square (- r color-r))
                               (square (- g color-g))
                               (square (- b color-b)))))
