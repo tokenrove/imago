@@ -54,3 +54,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "sharplispers/cl-jpeg" :ref nil :branch nil :tag nil)
   :version "github-bef2c3bb64dd19cb31c26338dcbecbf2542a2619"))
+("cl-libtiff" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "shamazmazum/cl-libtiff" :ref nil :branch nil :tag "v0.1")
+  :version "github-14587dbb916dc4dad4e68bc66e4b5844b011d693"))

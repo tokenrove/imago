@@ -91,12 +91,20 @@
   :components ((:file "package")
                (:file "file-heic" :depends-on ("package"))))
 
+(defsystem :imago/libtiff
+  :name :imago/libtiff
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago :cl-libtiff :serapeum)
+  :pathname "libtiff"
+  :components ((:file "package")
+               (:file "file-tiff" :depends-on ("package"))))
+
 (defsystem :imago/jupyter
   :name :imago/jupyter
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago
-               :imago/pngio
                :common-lisp-jupyter
                :cl-base64
                :flexi-streams)

@@ -56,13 +56,13 @@
            (values rgb-pixel &optional))
   (declaim (inline make-color))
   (defun make-color (r g b &optional (alpha #xff))
-    (logior (ash alpha 24) (ash r 16) (ash g 8) b)))
+    (logior (ash alpha 24) (ash b 16) (ash g 8) (ash r 0))))
 
 (sera:-> color-red (rgb-pixel)
          (values sera:octet &optional))
 (declaim (inline color-red))
 (defun color-red (color)
-  (ldb (byte 8 16) color))
+  (ldb (byte 8 0) color))
 
 (sera:-> color-green (rgb-pixel)
          (values sera:octet &optional))
@@ -74,7 +74,7 @@
          (values sera:octet &optional))
 (declaim (inline color-blue))
 (defun color-blue (color)
-  (ldb (byte 8 0) color))
+  (ldb (byte 8 16) color))
 
 (sera:-> color-alpha (rgb-pixel)
          (values sera:octet &optional))
