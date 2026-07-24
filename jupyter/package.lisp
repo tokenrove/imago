@@ -1,4 +1,4 @@
-(defpackage imago-jupyter
+(defpackage imago/jupyter
   (:use #:cl
         #:imago
         #:jupyter

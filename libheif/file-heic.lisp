@@ -1,4 +1,4 @@
-(in-package :imago-libheif)
+(in-package :imago/libheif)
 
 ;; Reading
 

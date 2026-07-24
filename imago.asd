@@ -62,7 +62,7 @@
   :in-order-to ((test-op (load-op "imago/tests")))
   :perform (test-op (op system)
                     (declare (ignore op system))
-                    (uiop:symbol-call :imago-tests '#:run-tests)))
+                    (uiop:symbol-call :imago/tests '#:run-tests)))
 
 (defsystem :imago/tests
   :name :imago/tests

@@ -1,4 +1,4 @@
-(in-package :imago-jpeg-turbo)
+(in-package :imago/jpeg-turbo)
 
 (defun jpg-image-class (colorspace)
   (case colorspace

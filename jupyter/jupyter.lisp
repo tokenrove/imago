@@ -1,4 +1,4 @@
-(in-package :imago-jupyter)
+(in-package :imago/jupyter)
 
 (defgeneric show-image (image)
   (:documentation "Show an image in Jupyter notebook"))

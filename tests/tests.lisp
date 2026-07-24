@@ -1,4 +1,4 @@
-(in-package :imago-tests)
+(in-package :imago/tests)
 
 (defparameter *rgb-image-pathname*
   (asdf:system-relative-pathname

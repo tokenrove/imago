@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;;
 ;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
-;;; Copyright (C) 2022  Vasily Postnicov (shamaz.mazum@gmail.com)
+;;; Copyright (C) 2022-2026  Vasily Postnicov (shamaz.mazum@gmail.com)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -9,7 +9,7 @@
 ;;; (http://opensource.franz.com/preamble.html),
 ;;; known as the LLGPL.
 
-(defpackage imago-bit-io
+(defpackage imago/bit-io
   (:use #:cl)
   (:local-nicknames (:gray :trivial-gray-streams)
                     (:alex :alexandria)

@@ -14,7 +14,7 @@
   (:local-nicknames (:alex :alexandria)
                     (:sera :serapeum)
                     (:flex :flexi-streams)
-                    (:bit  :imago-bit-io))
+                    (:bit  :imago/bit-io))
   (:export #:image
            #:image-width #:image-height #:image-dimensions
            #:image-plane-count #:image-colormap

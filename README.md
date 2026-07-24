@@ -12,20 +12,9 @@ can read an image with `imago:read-image` and write an image with
 You can use more advanced [libjpeg-turbo](https://libjpeg-turbo.org/) library to
 deal with jpeg files by loading `imago/jpeg-turbo` system. Make sure that
 `libjpeg-turbo` is installed on your system. Use
-`imago-jpeg-turbo:read-jpg-turbo` and `imago-jpeg-turbo:write-jpg-turbo`
+`imago/jpeg-turbo:read-jpg-turbo` and `imago/jpeg-turbo:write-jpg-turbo`
 functions (or just `imago:read-image` and `imago:write-image`) to use this
 functionality.
-
-## Alternative png I/O with imago/pngio
-
-You can use more advanced and faster
-[pngload](https://github.com/bufferswap/pngload) library to read png files by
-loading `imago/pngio` system. Use `imago-pngio:read-png` (or just
-`imago:read-image`) to use this functionality. **NB:** `pngload` automatically
-converts indexed color images to RGB (or ARGB) images. If you want to work with
-indexed images, use old png loader instead. Also
-[zpng](https://github.com/xach/zpng) (via `imago-pngio:write-png`) library will
-be used for saving png images.
 
 ## Creating an image
 
@@ -255,6 +244,6 @@ transform is available). This example requires `array-operations`.
 ## Intergation with common-lisp-jupyter
 
 You can view imago images in Jupyter by installing `imago/jupyter`
-system. Then call `imago-jupyter:show-image` function to show an image.
+system. Then call `imago/jupyter:show-image` function to show an image.
 
 ![Jupyter example](docs/jupyter.png)

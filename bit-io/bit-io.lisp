@@ -1,7 +1,7 @@
 ;;; IMAGO library
 ;;;
 ;;; Copyright (C) 2004-2005  Matthieu Villeneuve (matthieu.villeneuve@free.fr)
-;;; Copyright (C) 2022  Vasily Postnicov (shamaz.mazum@gmail.com)
+;;; Copyright (C) 2022-2026  Vasily Postnicov (shamaz.mazum@gmail.com)
 ;;;
 ;;; The authors grant you the rights to distribute
 ;;; and use this software as governed by the terms
@@ -9,7 +9,7 @@
 ;;; (http://opensource.franz.com/preamble.html),
 ;;; known as the LLGPL.
 
-(in-package :imago-bit-io)
+(in-package :imago/bit-io)
 
 ;; This file contains classes which can be used as binary streams for
 ;; per-bit access. There are few existing implementations which do a
