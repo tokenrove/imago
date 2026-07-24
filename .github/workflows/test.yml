@@ -4,20 +4,17 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: alternative I/O = ${{ matrix.altio }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        altio: [YES, NO]
     env:
-      WITH_ALTIO: ${{ matrix.altio }}
+      LISP: sbcl-bin
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install libturbojpeg0-dev libffi-dev libheif-dev build-essential
+          sudo apt install libturbojpeg0-dev libffi-dev libheif-dev \
+          libtiff-dev build-essential
       - name: Install roswell
         run: |
           curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh

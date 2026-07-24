@@ -54,6 +54,17 @@
 (def-suite contrast-enhancement :description "Functions to enhance contrast of images")
 (def-suite binary-images :description "Algorithms for binary images")
 
+(defun get-suitable-encoder ()
+  (cl-libheif:encoder-descriptor-compression-format
+   (find :mask (cl-libheif:encoder-descriptors)
+         :key #'cl-libheif:encoder-descriptor-compression-format
+         :test-not #'eq)))
+
+(defun write-heic (image name)
+  (imago/libheif:write-heic
+   image name
+   (get-suitable-encoder)))
+
 (in-suite read-write)
 (defun test-read-write (image reader writer lossless-p)
   (let ((width  (image-width image))
@@ -84,7 +95,7 @@
                 #'imago:write-pnm
                 #'imago:write-tga
                 #'imago/libtiff:write-tiff
-                #'imago/libheif:write-heic)
+                #'write-heic)
           '(t nil nil t t t nil))))
 
 (test read-write-grayscale
@@ -102,7 +113,9 @@
                 #'imago/jpeg-turbo:write-jpg
                 #'imago:write-pnm
                 #'imago/libtiff:write-tiff
-                #'imago/libheif:write-heic)
+                ;; Not supported with Github CI Actions
+                #+nil
+                #'write-heic)
           '(t nil nil t t nil))))
 
 (test read-write-bitmap
