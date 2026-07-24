@@ -66,7 +66,6 @@
 
 (defsystem :imago/tests
   :name :imago/tests
-  :version "0.11.0"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :fiveam)
@@ -76,7 +75,6 @@
 
 (defsystem :imago/jpeg-turbo
   :name :imago/jpeg-turbo
-  :version "0.2"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :jpeg-turbo)
@@ -86,7 +84,6 @@
 
 (defsystem :imago/libheif
   :name :imago/libheif
-  :version "0.1"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago :cl-libheif :float-features :serapeum)
@@ -96,7 +93,6 @@
 
 (defsystem :imago/jupyter
   :name :imago/jupyter
-  :version "0.2"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :license "LLGPL"
   :depends-on (:imago
