@@ -2,19 +2,25 @@
 ![CI](https://github.com/tokenrove/imago/workflows/CI/badge.svg)
 
 Imago is an image manipulation library for Common Lisp. It supports images in
-png, portable bitmap (.pnm), Truevision TGA (.tga), jpeg and HEIC formats. You
-can read an image with `imago:read-image` and write an image with
-`imago:write-format` where `format` is one of `png`, `pnm`, `tga`, `jpg` or
-`heic`.
+png, portable bitmap (.pnm), Truevision TGA (.tga), jpeg, TIFF and HEIC
+formats. You can read an image with `imago:read-image` and write an image with
+`imago:write-image`, a correct image format will be automatically determined
+from the image extension.
 
-## Reading from and writing to jpeg files with libjpeg-turbo
+## Dependencies
 
-You can use more advanced [libjpeg-turbo](https://libjpeg-turbo.org/) library to
-deal with jpeg files by loading `imago/jpeg-turbo` system. Make sure that
-`libjpeg-turbo` is installed on your system. Use
-`imago/jpeg-turbo:read-jpg-turbo` and `imago/jpeg-turbo:write-jpg-turbo`
-functions (or just `imago:read-image` and `imago:write-image`) to use this
-functionality.
+Some file formats require additional dependencies. Support for these formats are
+split into separate systems:
+
+| Format | System | Dependency | I/O functions |
+| ------ | -------|------------|---------------|
+| HEIC | `imago/libheif` | `libheif` | `imago/libheif:read-heic` & `imago/libheif:write-heic` |
+| jpeg | `imago/jpeg-turbo` | `libturbojpeg` | `imago/jpeg-turbo:read-jpeg` & `imago/jpeg-turbo:write-jpeg` |
+| TIFF | `imago/libtiff` | `libtiff` | `imago/libtiff:read-tiff` & `imago/libtiff:wite-tiff` |
+
+You can also read and write images of these formats with `imago:read-image` and
+`imago:write-image` once a suitable system is loaded. JPEG files can be read and
+written without `imago/jpeg-turbo`, but the latter option is much more reliable.
 
 ## Creating an image
 
