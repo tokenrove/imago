@@ -64,15 +64,6 @@
                     (declare (ignore op system))
                     (uiop:symbol-call :imago/tests '#:run-tests)))
 
-(defsystem :imago/tests
-  :name :imago/tests
-  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
-  :license "LLGPL"
-  :depends-on (:imago :fiveam)
-  :pathname "tests"
-  :components ((:file "package")
-               (:file "tests" :depends-on ("package"))))
-
 (defsystem :imago/jpeg-turbo
   :name :imago/jpeg-turbo
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
@@ -99,6 +90,19 @@
   :pathname "libtiff"
   :components ((:file "package")
                (:file "file-tiff" :depends-on ("package"))))
+
+(defsystem :imago/tests
+  :name :imago/tests
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :license "LLGPL"
+  :depends-on (:imago
+               :imago/jpeg-turbo
+               :imago/libheif
+               :imago/libtiff
+               :fiveam)
+  :pathname "tests"
+  :components ((:file "package")
+               (:file "tests" :depends-on ("package"))))
 
 (defsystem :imago/jupyter
   :name :imago/jupyter

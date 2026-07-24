@@ -32,12 +32,11 @@
   (asdf:system-relative-pathname
    :imago/tests (format nil "tests/test-resize~D.png" n)))
 
-(defun temporary-filename (format)
+(defparameter *temporary-filename*
   (asdf:system-relative-pathname
    :imago/tests
    (make-pathname :directory '(:relative "tests")
-                  :name "tmp"
-                  :type format)))
+                  :name "tmp")))
 
 (defun run-tests ()
   (flet ((run-suite (suite)
@@ -56,13 +55,13 @@
 (def-suite binary-images :description "Algorithms for binary images")
 
 (in-suite read-write)
-(defun test-read-write (image format lossless-p)
-  (let ((tmp-name (temporary-filename format))
-        (width  (image-width image))
+(defun test-read-write (image reader writer lossless-p)
+  (let ((width  (image-width image))
         (height (image-height image))
-        (pixels (image-pixels image)))
-    (finishes (write-image image tmp-name))
-    (let ((image (read-image tmp-name)))
+        (pixels (image-pixels image))
+        (tmp-name *temporary-filename*))
+    (finishes (funcall writer image tmp-name))
+    (let ((image (funcall reader tmp-name)))
       (is (= width  (image-width image)))
       (is (= height (image-height image)))
       (when lossless-p
@@ -72,20 +71,46 @@
 (test read-write-rgb
   (let ((image (read-image *rgb-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
-          '("png" "jpg" "pnm" "tga")
-          '(t nil t t))))
+          (list #'imago:read-png
+                #'imago:read-jpg
+                #'imago/jpeg-turbo:read-jpg
+                #'imago:read-pnm
+                #'imago:read-tga
+                #'imago/libtiff:read-tiff
+                #'imago/libheif:read-heic)
+          (list #'imago:write-png
+                #'imago:write-jpg
+                #'imago/jpeg-turbo:write-jpg
+                #'imago:write-pnm
+                #'imago:write-tga
+                #'imago/libtiff:write-tiff
+                #'imago/libheif:write-heic)
+          '(t nil nil t t t nil))))
 
 (test read-write-grayscale
   (let ((image (read-image *grayscale-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
           ;; TGA is not supported
-          '("png" "jpg" "pnm")
-          '(t nil t))))
+          (list #'imago:read-png
+                #'imago:read-jpg
+                #'imago/jpeg-turbo:read-jpg
+                #'imago:read-pnm
+                #'imago/libtiff:read-tiff
+                #'imago/libheif:read-heic)
+          (list #'imago:write-png
+                #'imago:write-jpg
+                #'imago/jpeg-turbo:write-jpg
+                #'imago:write-pnm
+                #'imago/libtiff:write-tiff
+                #'imago/libheif:write-heic)
+          '(t nil nil t t nil))))
 
 (test read-write-bitmap
   (let ((image (read-image *ascii-bitmap-image-pathname*)))
     (mapc (alexandria:curry #'test-read-write image)
-          '("pnm") '(t))))
+          (list #'imago:read-pnm)
+          (list #'imago:write-pnm)
+          '(t))))
 
 (test binary-vs-ascii-bitmaps
   (let ((image-binary (read-image *binary-bitmap-image-pathname*))
