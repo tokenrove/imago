@@ -30,14 +30,14 @@
   (let* ((height (array-dimension colors 0))
          (width  (array-dimension colors 1))
          (pixels (make-array (list height width) :element-type 'imago:rgb-pixel)))
-    (loop for i below height do
-          (loop for j below width do
-                (setf (aref pixels i j)
+    (loop for i below (array-total-size pixels)
+          for j from 0 by 4 do
+            (setf (row-major-aref pixels i)
                       (imago:make-color
-                       (aref colors i j 0)
-                       (aref colors i j 1)
-                       (aref colors i j 2)
-                       (aref colors i j 3)))))
+                       (row-major-aref colors (+ j 0))
+                       (row-major-aref colors (+ j 1))
+                       (row-major-aref colors (+ j 2))
+                       (row-major-aref colors (+ j 3)))))
     (imago:make-rgb-image-from-pixels pixels)))
 
 (serapeum:-> data-to-gray-image ((simple-array (unsigned-byte 8) (* * 1)))
@@ -47,11 +47,10 @@
   (let* ((height (array-dimension gray 0))
          (width  (array-dimension gray 1))
          (pixels (make-array (list height width) :element-type 'imago:grayscale-pixel)))
-    (loop for i below height do
-          (loop for j below width do
-                (setf (aref pixels i j)
-                      (imago:make-gray
-                       (aref gray i j 0)))))
+    (loop for i below (array-total-size pixels) do
+      (setf (row-major-aref pixels i)
+            (imago:make-gray
+             (row-major-aref gray i))))
     (imago:make-grayscale-image-from-pixels pixels)))
 
 (declaim (inline data-to-image))
@@ -84,11 +83,10 @@
          (width  (array-dimension pixels 1))
          (result (make-array (list height width 1)
                              :element-type '(unsigned-byte 8))))
-    (loop for i below height do
-          (loop for j below width do
-                (setf (aref result i j 0)
-                      (imago:gray-intensity
-                       (aref pixels i j)))))
+    (loop for i below (array-total-size pixels) do
+      (setf (row-major-aref result i)
+            (imago:gray-intensity
+             (row-major-aref pixels i))))
     result))
 
 (serapeum:-> color-to-data ((simple-array imago:rgb-pixel 2))
@@ -99,17 +97,17 @@
          (width  (array-dimension pixels 1))
          (result (make-array (list height width 4)
                              :element-type '(unsigned-byte 8))))
-    (loop for i below height do
-          (loop for j below width do
-                (let ((color (aref pixels i j)))
-                  (setf (aref result i j 0)
-                        (imago:color-red color)
-                        (aref result i j 1)
-                        (imago:color-green color)
-                        (aref result i j 2)
-                        (imago:color-blue color)
-                        (aref result i j 3)
-                        (imago:color-alpha color)))))
+    (loop for i below (array-total-size pixels)
+          for j from 0 by 4 do
+            (let ((color (row-major-aref pixels i)))
+              (setf (row-major-aref result (+ j 0))
+                    (imago:color-red color)
+                    (row-major-aref result (+ j 1))
+                    (imago:color-green color)
+                    (row-major-aref result (+ j 2))
+                    (imago:color-blue color)
+                    (row-major-aref result (+ j 3))
+                    (imago:color-alpha color))))
     result))
 
 (serapeum:-> image-to-data (imago:image)
