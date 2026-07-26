@@ -1,5 +1,8 @@
 (in-package :imago/libheif)
 
+(defparameter *heic-threads* 0
+  "Number of threads to use for HEIC decoding")
+
 ;; Reading
 
 (serapeum:-> get-image ((or string pathname) (integer 0))
@@ -61,7 +64,7 @@
 
 (serapeum:-> read-heic ((or pathname string) &optional (integer 0))
              (values imago:image &optional))
-(defun read-heic (filename &optional (decoding-threads 0))
+(defun read-heic (filename &optional (decoding-threads *heic-threads*))
   (data-to-image (get-image filename decoding-threads)))
 
 ;; Writing
