@@ -1,17 +1,19 @@
 (in-package :imago/libheif)
 
-(defparameter *heic-threads* 0
+(declaim (type (or (unsigned-byte 32) null) *heic-threads*))
+(defparameter *heic-threads* nil
   "Number of threads to use for HEIC decoding")
 
 ;; Reading
 
-(serapeum:-> get-image ((or string pathname) (integer 0))
+(serapeum:-> get-image ((or string pathname) (or (unsigned-byte 32) null))
              (values (simple-array (unsigned-byte 8) 3) &optional))
 (defun get-image (filename decoding-threads)
   (ff:with-float-traps-masked (:overflow :invalid :divide-by-zero)
     (with-libheif (+default-init-parameters+)
       (with-context (ctx)
-        (context-set-max-decoding-threads! ctx decoding-threads)
+        (when decoding-threads
+          (context-set-max-decoding-threads! ctx decoding-threads))
         (context-read-from-file! ctx filename)
         (with-primary-image-handle (handle ctx)
           (let ((preferred-colorspace (image-handle-preferred-decoding-colorspace handle)))
@@ -62,7 +64,7 @@
       (data-to-rgb-image  colors)
       (data-to-gray-image colors)))
 
-(serapeum:-> read-heic ((or pathname string) &optional (integer 0))
+(serapeum:-> read-heic ((or pathname string) &optional (or (unsigned-byte 32) null))
              (values imago:image &optional))
 (defun read-heic (filename &optional (decoding-threads *heic-threads*))
   (data-to-image (get-image filename decoding-threads)))
