@@ -46,10 +46,6 @@
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2026-01-01"))
-("cl-libheif" .
- (:class qlot/source/github:source-github
-  :initargs (:repos "shamazmazum/cl-libheif" :ref nil :branch nil :tag "v1.0.1")
-  :version "github-6587cf1ca06996e29efa29afff068e670e351c46"))
 ("cl-jpeg" .
  (:class qlot/source/github:source-github
   :initargs (:repos "sharplispers/cl-jpeg" :ref nil :branch nil :tag nil)
@@ -58,3 +54,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "shamazmazum/cl-libtiff" :ref nil :branch nil :tag "v0.1")
   :version "github-14587dbb916dc4dad4e68bc66e4b5844b011d693"))
+("cl-libheif" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "shamazmazum/cl-libheif" :ref nil :branch nil :tag "v1.1.0")
+  :version "github-3f74c17b7313eeb179eefe87ffd00bcf54a53751"))
