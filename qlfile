@@ -5,10 +5,10 @@ ql zlib
 ql array-operations
 ql flexi-streams
 ql fiveam
-ql jpeg-turbo
 ql pngload
 ql zpng
 ql float-features
 github sharplispers/cl-jpeg
 github shamazmazum/cl-libtiff :tag v0.1
 github shamazmazum/cl-libheif :tag v1.1.0
+github shamazmazum/jpeg-turbo :tag v1.1

@@ -30,10 +30,6 @@
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2024-10-12"))
-("jpeg-turbo" .
- (:class qlot/source/ql:source-ql
-  :initargs (:%version :latest)
-  :version "ql-2026-01-01"))
 ("pngload" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
@@ -58,3 +54,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "shamazmazum/cl-libheif" :ref nil :branch nil :tag "v1.1.0")
   :version "github-3f74c17b7313eeb179eefe87ffd00bcf54a53751"))
+("jpeg-turbo" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "shamazmazum/jpeg-turbo" :ref nil :branch nil :tag "v1.1")
+  :version "github-fa6154446dc63db58c9950182ac8f440740ddd9d"))
